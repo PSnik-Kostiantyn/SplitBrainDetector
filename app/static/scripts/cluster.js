@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentNodeName = '';
     let isErasing = false;
     let currentEdgeType = 'one-way';
+    let selectedNode = null;
+    let isDragging = false;
 
     // Створення нової ноди
     document.getElementById('create-node').addEventListener('click', function() {
@@ -92,7 +94,30 @@ document.addEventListener('DOMContentLoaded', function() {
             edges = edges.filter(edge => edge.from !== clickedNode.name && edge.to !== clickedNode.name);
             drawGraph();
             updateMatrix();
+        } else {
+            eraseEdge(event);
         }
+    }
+
+    // Видалення зв'язку між нодами
+    function eraseEdge(event) {
+        const clickedEdge = edges.find(edge => {
+            const fromNode = nodes.find(n => n.name === edge.from);
+            const toNode = nodes.find(n => n.name === edge.to);
+            return fromNode && toNode && isPointOnLine(event.offsetX, event.offsetY, fromNode.x, fromNode.y, toNode.x, toNode.y);
+        });
+        if (clickedEdge) {
+            edges = edges.filter(edge => edge !== clickedEdge);
+            drawGraph();
+            updateMatrix();
+        }
+    }
+
+    // Перевірка чи точка знаходиться на лінії
+    function isPointOnLine(px, py, x1, y1, x2, y2) {
+        const distance = Math.abs((y2 - y1) * px - (x2 - x1) * py + x2 * y1 - y2 * x1) /
+                         Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
+        return distance < 10; // Точність вибору лінії
     }
 
     // Оновлення матриці
@@ -118,11 +143,39 @@ document.addEventListener('DOMContentLoaded', function() {
             for (let j = 0; j < size; j++) {
                 const cell = document.createElement('td');
                 cell.textContent = matrixData[i][j];
+                cell.setAttribute('data-node', nodes[i].name);
+                cell.addEventListener('click', function() {
+                    console.log('Nodes:', nodes.map(node => node.name));
+                    console.log('Matrix:', matrixData);
+                });
                 row.appendChild(cell);
             }
             matrix.appendChild(row);
         }
     }
+
+    // Переміщення ноди
+    canvas.addEventListener('mousedown', function(event) {
+        const clickedNode = nodes.find(node => Math.hypot(node.x - event.offsetX, node.y - event.offsetY) < 20);
+        if (clickedNode) {
+            selectedNode = clickedNode;
+            isDragging = true;
+        }
+    });
+
+    canvas.addEventListener('mousemove', function(event) {
+        if (isDragging && selectedNode) {
+            selectedNode.x = event.offsetX;
+            selectedNode.y = event.offsetY;
+            drawGraph();
+            updateMatrix();
+        }
+    });
+
+    canvas.addEventListener('mouseup', function() {
+        isDragging = false;
+        selectedNode = null;
+    });
 
     // Відправлення матриці
     document.getElementById('submit-matrix').addEventListener('click', function() {

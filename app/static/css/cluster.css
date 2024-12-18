@@ -10,6 +10,39 @@ body {
     background-size: 626px 450px;
 }
 
+#graph-canvas {
+    border: 2px solid #ccc;
+    cursor: pointer;
+}
+
+.tools {
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 8px 16px;
+    margin: 5px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+#matrix-display {
+    margin-top: 20px;
+}
+
+#matrix td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    text-align: center;
+}
+
 header {
     text-align: center;
     background-color: #fff;
