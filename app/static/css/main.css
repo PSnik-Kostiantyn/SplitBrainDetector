@@ -5,13 +5,24 @@ body {
     color: #333;
     margin: 0;
     padding: 0;
-
+    background-image: url('http://127.0.0.1:8000/static/images/mainbg.png');
+    background-repeat: repeat;
+    background-size: 626px 450px;
 }
 
 header {
     text-align: center;
     margin: 20px 0;
+    background-color: #fff;
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-left: auto;
+    margin-right: auto;
 }
+
 
 h1 {
     color: #000;
