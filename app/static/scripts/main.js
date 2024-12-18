@@ -13,12 +13,20 @@ document.getElementById("generate-matrix").addEventListener("click", () => {
         const row = table.insertRow();
         for (let j = 0; j <= size; j++) {
             const cell = row.insertCell();
-            if (i === 0 && j > 0) cell.textContent = `A${j}`;
-            else if (j === 0 && i > 0) cell.textContent = `A${i}`;
-            else if (i === j) {
+            if (i === 0 && j > 0) {
+                // Верхній рядок (імена нод)
+                const input = createNodeInput(`A${j}`);
+                cell.appendChild(input);
+            } else if (j === 0 && i > 0) {
+                // Перший стовпець (імена нод)
+                const input = createNodeInput(`A${i}`);
+                cell.appendChild(input);
+            } else if (i === j) {
+                // Діагональ
                 cell.textContent = 0;
                 cell.style.backgroundColor = "#ddd";
             } else if (i > 0 && j > 0) {
+                // Решта матриці
                 const input = document.createElement("input");
                 input.type = "number";
                 input.min = 0;
@@ -32,28 +40,58 @@ document.getElementById("generate-matrix").addEventListener("click", () => {
     document.getElementById("submit-matrix").classList.remove("hidden");
 });
 
-document.getElementById("submit-matrix").addEventListener("click", () => {
-    const inputs = document.querySelectorAll("table input");
-    if (inputs.length === 0) {
-        alert("Спочатку згенеруйте матрицю.");
-        return;
-    }
+function createNodeInput(defaultValue) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = defaultValue;
+    input.maxLength = 2; // Обмеження довжини до 2 символів
+    input.style.width = "2em";
+    return input;
+}
 
+document.getElementById("submit-matrix").addEventListener("click", () => {
     const table = document.querySelector("table");
     const rows = table.rows;
 
-    const nodes = [];
+    const nodesHorizontal = [];
+    const nodesVertical = [];
     const matrix = [];
 
+    // Збираємо горизонтальні імена нод
     for (let j = 1; j < rows[0].cells.length; j++) {
-        nodes.push(rows[0].cells[j].textContent);
+        const input = rows[0].cells[j].querySelector("input");
+        if (input) {
+            nodesHorizontal.push(input.value);
+        }
     }
 
+    // Збираємо вертикальні імена нод
+    for (let i = 1; i < rows.length; i++) {
+        const input = rows[i].cells[0].querySelector("input");
+        if (input) {
+            nodesVertical.push(input.value);
+        }
+    }
+
+    // Перевірка на унікальність та формат імен
+    const allNodes = [...nodesHorizontal, ...nodesVertical];
+    if (!allNodes.every((name) => /^[A-Z][1-9]$/.test(name))) {
+        alert("Імена нод мають відповідати формату: перша літера (A-Z), друга цифра (1-9).");
+        return;
+    }
+
+    // Перевірка на відповідність горизонтальних і вертикальних імен
+    if (JSON.stringify(nodesHorizontal) !== JSON.stringify(nodesVertical)) {
+        alert("Горизонтальні та вертикальні імена нод мають співпадати.");
+        return;
+    }
+
+    // Збираємо матрицю
     for (let i = 1; i < rows.length; i++) {
         const row = [];
         for (let j = 1; j < rows[i].cells.length; j++) {
             const input = rows[i].cells[j].querySelector("input");
-            const value = input ? parseInt(input.value) : 0;
+            const value = input ? parseInt(input.value, 10) : 0;
 
             if (value !== 0 && value !== 1) {
                 alert("Матриця може містити лише 0 або 1.");
@@ -64,38 +102,38 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
         matrix.push(row);
     }
 
-    console.log("Nodes:", nodes);
+    console.log("Nodes:", nodesHorizontal);
     console.log("Matrix:", matrix);
 
+    // Відправлення даних
     fetch(window.location.href, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
         },
-        body: JSON.stringify({ nodes: nodes, matrix: matrix })
+        body: JSON.stringify({ nodes: nodesHorizontal, matrix: matrix })
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Отримані дані від сервера:", data);
+        .then((response) => response.json())
+        .then((data) => {
+            console.log("Отримані дані від сервера:", data);
 
-        const resultElement = document.getElementById("result");
-        if (!data.data || data.data.length === 0) {
-            alert("Помилка: некоректна відповідь сервера.");
-            return;
-        }
+            const resultElement = document.getElementById("result");
+            if (!data.data || data.data.length === 0) {
+                alert("Помилка: некоректна відповідь сервера.");
+                return;
+            }
 
-        const probability = data.data[0].probability;
+            const probability = data.data[0].probability;
 
-        if (probability === -1) {
-            resultElement.textContent = "Кластер мертвий";
-            resultElement.className = "gray";
-            document.getElementById("submit-matrix").classList.add("gray");
-        } else {
-            resultElement.textContent = `Ймовірність: ${probability}%`;
-            resultElement.className = probability < 50 ? "green" : "red";
-        }
-        resultElement.classList.remove("hidden");
-    })
-    .catch(error => console.error("Помилка при відправці:", error));
+            if (probability === -1) {
+                resultElement.textContent = "Кластер мертвий";
+                resultElement.className = "gray";
+            } else {
+                resultElement.textContent = `Ймовірність: ${probability}%`;
+                resultElement.className = probability < 50 ? "green" : "red";
+            }
+            resultElement.classList.remove("hidden");
+        })
+        .catch((error) => console.error("Помилка при відправці:", error));
 });
