@@ -2,12 +2,11 @@ from django.shortcuts import render
 from django.http import JsonResponse
 import json
 
+from app.model.isDeadCluster import isClusterDead
+
 def dummy_neural_model(nodes, matrix):
-    # Приклад обробки даних, що повертає ймовірності у %
-    return [{"node": node, "probability": 75.0} for node in nodes]
+    return [{"node": node, "probability": 50.0} for node in nodes]
 
-
-# Головна сторінка
 def index(request):
     if request.method == "POST":
         try:
@@ -18,6 +17,9 @@ def index(request):
             if not matrix or not nodes:
                 return JsonResponse({"error": "Матриця або вузли не можуть бути порожніми."}, status=400)
 
+            if isClusterDead(nodes, matrix):
+                print("Dead")
+                return JsonResponse({"data": [{"node": node, "probability": -1.0} for node in nodes]})
             response = dummy_neural_model(nodes, matrix)
             return JsonResponse({"data": response})
         except json.JSONDecodeError:
@@ -25,13 +27,8 @@ def index(request):
 
     return render(request, 'index.html')
 
-
-
-# Графічна сторінка
 def cluster(request):
     return render(request, 'cluster.html')
 
-
-# Інформаційна сторінка
 def info(request):
     return render(request, 'info.html')

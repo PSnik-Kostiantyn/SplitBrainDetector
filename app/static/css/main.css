@@ -12,15 +12,13 @@ body {
 
 header {
     text-align: center;
-    margin: 20px 0;
     background-color: #fff;
     width: 100%;
     max-width: 800px;
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 10px;
-    margin-left: auto;
-    margin-right: auto;
+    margin: 20px auto;
 }
 
 

@@ -1,11 +1,10 @@
 document.getElementById("generate-matrix").addEventListener("click", () => {
     const size = parseInt(document.getElementById("matrix-size-input").value);
-    if (size < 2 || size > 10 || isNaN(size)) {
-        alert("Введіть розмір від 2 до 10");
+    if (size < 2 || size > 9 || isNaN(size)) {
+        alert("Введіть розмір від 2 до 9");
         return;
     }
 
-    // Створюємо таблицю
     const container = document.getElementById("matrix-container");
     container.innerHTML = "";
     const table = document.createElement("table");
@@ -43,15 +42,13 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
     const table = document.querySelector("table");
     const rows = table.rows;
 
-    const nodes = []; // Вузли A1, A2, ...
-    const matrix = []; // Матриця доступності
+    const nodes = [];
+    const matrix = [];
 
-    // Зчитуємо вузли з першого рядка таблиці
     for (let j = 1; j < rows[0].cells.length; j++) {
         nodes.push(rows[0].cells[j].textContent);
     }
 
-    // Зчитуємо матрицю доступності з таблиці
     for (let i = 1; i < rows.length; i++) {
         const row = [];
         for (let j = 1; j < rows[i].cells.length; j++) {
@@ -70,7 +67,6 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
     console.log("Nodes:", nodes);
     console.log("Matrix:", matrix);
 
-    // Відправляємо дані на сервер
     fetch(window.location.href, {
         method: "POST",
         headers: {
@@ -97,7 +93,7 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
             document.getElementById("submit-matrix").classList.add("gray");
         } else {
             resultElement.textContent = `Ймовірність: ${probability}%`;
-            resultElement.className = probability > 50 ? "green" : "red";
+            resultElement.className = probability < 50 ? "green" : "red";
         }
         resultElement.classList.remove("hidden");
     })
