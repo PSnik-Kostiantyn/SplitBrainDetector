@@ -5,7 +5,7 @@ import json
 from app.model.isDeadCluster import isClusterDead
 
 def dummy_neural_model(nodes, matrix):
-    return [{"node": node, "probability": 50.0} for node in nodes]
+    return 45.0
 
 def index(request):
     if request.method == "POST":
@@ -18,14 +18,15 @@ def index(request):
                 return JsonResponse({"error": "Матриця або вузли не можуть бути порожніми."}, status=400)
 
             if isClusterDead(nodes, matrix):
-                print("Dead")
-                return JsonResponse({"data": [{"node": node, "probability": -1.0} for node in nodes]})
-            response = dummy_neural_model(nodes, matrix)
-            return JsonResponse({"data": response})
+                return JsonResponse({"probability": -1})
+
+            probability = dummy_neural_model(nodes, matrix)
+            return JsonResponse({"probability": probability})
         except json.JSONDecodeError:
             return JsonResponse({"error": "Невірний формат JSON."}, status=400)
 
     return render(request, 'index.html')
+
 
 def cluster(request):
     return render(request, 'cluster.html')

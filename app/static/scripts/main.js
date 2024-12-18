@@ -14,19 +14,16 @@ document.getElementById("generate-matrix").addEventListener("click", () => {
         for (let j = 0; j <= size; j++) {
             const cell = row.insertCell();
             if (i === 0 && j > 0) {
-                // Верхній рядок (імена нод)
                 const input = createNodeInput(`A${j}`);
                 cell.appendChild(input);
             } else if (j === 0 && i > 0) {
-                // Перший стовпець (імена нод)
+
                 const input = createNodeInput(`A${i}`);
                 cell.appendChild(input);
             } else if (i === j) {
-                // Діагональ
                 cell.textContent = 0;
                 cell.style.backgroundColor = "#ddd";
             } else if (i > 0 && j > 0) {
-                // Решта матриці
                 const input = document.createElement("input");
                 input.type = "number";
                 input.min = 0;
@@ -44,7 +41,7 @@ function createNodeInput(defaultValue) {
     const input = document.createElement("input");
     input.type = "text";
     input.value = defaultValue;
-    input.maxLength = 2; // Обмеження довжини до 2 символів
+    input.maxLength = 2;
     input.style.width = "2em";
     return input;
 }
@@ -57,7 +54,6 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
     const nodesVertical = [];
     const matrix = [];
 
-    // Збираємо горизонтальні імена нод
     for (let j = 1; j < rows[0].cells.length; j++) {
         const input = rows[0].cells[j].querySelector("input");
         if (input) {
@@ -65,7 +61,6 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
         }
     }
 
-    // Збираємо вертикальні імена нод
     for (let i = 1; i < rows.length; i++) {
         const input = rows[i].cells[0].querySelector("input");
         if (input) {
@@ -73,20 +68,17 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
         }
     }
 
-    // Перевірка на унікальність та формат імен
     const allNodes = [...nodesHorizontal, ...nodesVertical];
     if (!allNodes.every((name) => /^[A-Z][1-9]$/.test(name))) {
         alert("Імена нод мають відповідати формату: перша літера (A-Z), друга цифра (1-9).");
         return;
     }
 
-    // Перевірка на відповідність горизонтальних і вертикальних імен
     if (JSON.stringify(nodesHorizontal) !== JSON.stringify(nodesVertical)) {
         alert("Горизонтальні та вертикальні імена нод мають співпадати.");
         return;
     }
 
-    // Збираємо матрицю
     for (let i = 1; i < rows.length; i++) {
         const row = [];
         for (let j = 1; j < rows[i].cells.length; j++) {
@@ -119,20 +111,17 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
             console.log("Отримані дані від сервера:", data);
 
             const resultElement = document.getElementById("result");
-            if (!data.data || data.data.length === 0) {
+            if (data.probability === undefined) {
                 alert("Помилка: некоректна відповідь сервера.");
                 return;
             }
 
-            const probability = data.data[0].probability;
+            const probability = data.probability;
 
-            if (probability === -1) {
-                resultElement.textContent = "Кластер мертвий";
-                resultElement.className = "gray";
-            } else {
-                resultElement.textContent = `Ймовірність: ${probability}%`;
-                resultElement.className = probability < 50 ? "green" : "red";
-            }
+            resultElement.textContent = probability === -1
+                ? "Кластер мертвий"
+                : `Ймовірність: ${probability}%`;
+            resultElement.className = probability < 50 ? "green" : "red";
             resultElement.classList.remove("hidden");
         })
         .catch((error) => console.error("Помилка при відправці:", error));
