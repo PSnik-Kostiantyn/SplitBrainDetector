@@ -1,10 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Графічне задання кластеру</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Brain Problem Detector</title>
+    <link rel="stylesheet" href="../static/css/cluster.css">
 </head>
 <body>
-    <h1>Сторінка для графічного завдання кластеру</h1>
+<!-- Заголовок та кнопки навігації -->
+<header>
+    <h1>Split Brain Problem Detector</h1>
+    <div class="menu">
+        <a href="/" class="button">На головну</a>
+        <a href="/info" class="button">Інформаційна сторінка</a>
+    </div>
+</header>
+
+<!-- Графічне введення -->
+<section class="graph-section">
+    <h2>Графічне введення</h2>
+
+    <!-- Панель інструментів -->
+    <div class="tools">
+        <label for="node-name">Назва ноди:</label>
+        <input type="text" id="node-name" placeholder="Введіть назву">
+        <button id="create-node">Додати ноду</button>
+
+        <div>
+            <button id="line-one-way">Лінія в один бік</button>
+            <button id="line-two-way">Лінія в два боки</button>
+            <button id="erase">Стерти</button>
+        </div>
+    </div>
+
+    <!-- Канвас для графа -->
+    <canvas id="graph-canvas" width="600" height="400"></canvas>
+
+    <!-- Відображення матриці -->
+    <div id="matrix-display">
+        <h3>Матриця зв'язків:</h3>
+        <table id="matrix"></table>
+    </div>
+
+    <!-- Кнопка відправлення -->
+    <button id="submit-matrix">Відправити</button>
+
+    <!-- Відображення результату -->
+    <div id="result" class="hidden"></div>
+</section>
+
+<script src="../static/scripts/cluster.js"></script>
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
 </body>
 </html>
