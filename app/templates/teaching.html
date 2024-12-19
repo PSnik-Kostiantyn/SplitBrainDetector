@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Brain Problem Detector</title>
+    <link rel="stylesheet" href="../static/css/teaching.css">
+</head>
+<body>
+
+<header>
+    <h1>Split Brain Problem Learning</h1>
+    <div class="menu">
+        <a href="/" class="button">Головна сторінка</a>
+        <a href="/cluster" class="button">Графічне задання</a>
+        <a href="/info" class="button">Інформаційна сторінка</a>
+    </div>
+</header>
+
+<section>
+    <h2>Опис процесу навчання</h2>
+    <p>
+        Щоб навчити модель, вам необхідно згенерувати матрицю кластеру та вказати,
+        чи виникла ситуація split brain. Всі типи вузлів є обов'язковими для роботи системи.
+    </p>
+    <label>
+        <input type="checkbox" id="confirmation-checkbox"> Я уважно прочитав(ла)
+    </label>
+    <button id="generate-button" class="gray" disabled>Згенерувати матрицю</button>
+    <div id="matrix-section" class="hidden">
+        <h3>Згенерована матриця доступності</h3>
+        <div id="matrix-container"></div>
+        <div id="response-buttons">
+            <button id="split-brain-yes" class="button green hidden">Є split brain</button>
+            <button id="split-brain-no" class="button red hidden">Нема split brain</button>
+        </div>
+    </div>
+</section>
+
+<script src="../static/scripts/teaching.js"></script>
+</body>
+</html>

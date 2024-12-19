@@ -13,7 +13,8 @@ def index(request):
             data = json.loads(request.body)
             nodes = data.get("nodes", [])
             matrix = data.get("matrix", [])
-
+            print(nodes)
+            print(matrix)
             if not matrix or not nodes:
                 return JsonResponse({"error": "Матриця або вузли не можуть бути порожніми."}, status=400)
 
@@ -29,7 +30,27 @@ def index(request):
 
 
 def cluster(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            nodes = data.get("nodes", [])
+            matrix = data.get("matrix", [])
+
+            if not matrix or not nodes:
+                return JsonResponse({"error": "Матриця або вузли не можуть бути порожніми."}, status=400)
+
+            if isClusterDead(nodes, matrix):
+                return JsonResponse({"probability": -1})
+
+            probability = dummy_neural_model(nodes, matrix)
+            return JsonResponse({"probability": probability})
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Невірний формат JSON."}, status=400)
+
     return render(request, 'cluster.html')
 
 def info(request):
     return render(request, 'info.html')
+
+def teach(request):
+    return render(request, 'teaching.html')

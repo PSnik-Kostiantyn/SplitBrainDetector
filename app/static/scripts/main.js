@@ -97,7 +97,6 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
     console.log("Nodes:", nodesHorizontal);
     console.log("Matrix:", matrix);
 
-    // Відправлення даних
     fetch(window.location.href, {
         method: "POST",
         headers: {

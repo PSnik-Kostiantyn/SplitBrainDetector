@@ -1,0 +1,102 @@
+/* Загальні стилі */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    background-image: url('http://127.0.0.1:8000/static/images/mainbg.png');
+    background-repeat: repeat;
+    background-size: 626px 450px;
+}
+
+header {
+    text-align: center;
+    background-color: #fff;
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin: 20px auto;
+}
+
+h1 {
+    color: #000;
+    font-size: 2.5em;
+}
+
+.menu {
+    margin: 20px 0;
+}
+
+.button {
+    display: inline-block;
+    margin: 0 10px;
+    padding: 10px 20px;
+    background-color: #333;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.button:hover {
+    background-color: #555;
+}
+
+.button.active {
+    background-color: #007bff;
+    pointer-events: none;
+}
+
+section {
+    text-align: center;
+    margin: 20px auto;
+    max-width: 800px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+}
+
+input[type="checkbox"] {
+    margin: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+button.gray {
+    background-color: #ccc;
+    pointer-events: none;
+}
+
+button.green {
+    background-color: #28a745;
+    color: white;
+}
+
+button.red {
+    background-color: #dc3545;
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
+
+#matrix-container table {
+    margin: 20px auto;
+    border-collapse: collapse;
+}
+
+#matrix-container th, #matrix-container td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}

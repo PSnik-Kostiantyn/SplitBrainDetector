@@ -184,8 +184,67 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.getElementById('submit-matrix').addEventListener('click', function () {
-        alert('Матриця відправлена!');
+        const nodesHorizontal = nodes.map(node => node.name);
+
+        // Перевірка кількості нод
+        if (nodesHorizontal.length === 0) {
+            alert("Матриця порожня, додайте вузли та ребра.");
+            return;
+        }
+
+        // Створення матриці доступності
+        const size = nodes.length;
+        const matrix = Array.from({length: size}, () => Array(size).fill(0));
+
+        // Заповнення матриці
+        edges.forEach(edge => {
+            const fromIndex = nodes.findIndex(node => node.name === edge.from);
+            const toIndex = nodes.findIndex(node => node.name === edge.to);
+            if (fromIndex >= 0 && toIndex >= 0) {
+                matrix[fromIndex][toIndex] = 1;
+                if (edge.type === 'two-way') {
+                    matrix[toIndex][fromIndex] = 1;
+                }
+            }
+        });
+
+        // Гарантування, що центральна діагональ завжди містить лише нулі
+        for (let i = 0; i < size; i++) {
+            matrix[i][i] = 0;
+        }
+
+        console.log("Nodes:", nodesHorizontal);
+        console.log("Matrix:", matrix);
+
+        fetch(window.location.href, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
+            },
+            body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix})
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log("Отримані дані від сервера:", data);
+
+                const resultElement = document.getElementById("result");
+                if (data.probability === undefined) {
+                    alert("Помилка: некоректна відповідь сервера.");
+                    return;
+                }
+
+                const probability = data.probability;
+
+                resultElement.textContent = probability === -1
+                    ? "Кластер мертвий"
+                    : `Ймовірність: ${probability}%`;
+                resultElement.className = probability < 50 ? "green" : "red";
+                resultElement.classList.remove("hidden");
+            })
+            .catch((error) => console.error("Помилка при відправці:", error));
     });
+
 
     function getNodeColor(name) {
         const letter = name.charAt(0).toUpperCase();
