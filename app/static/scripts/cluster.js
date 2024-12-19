@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const canvas = document.getElementById('graph-canvas');
     const ctx = canvas.getContext('2d');
     let nodes = [];
@@ -9,10 +9,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedNode = null;
     let isDragging = false;
 
-    document.getElementById('create-node').addEventListener('click', function() {
+    document.getElementById('create-node').addEventListener('click', function () {
         const nodeName = document.getElementById('node-name').value;
         if (validateNodeName(nodeName)) {
-            nodes.push({ name: nodeName, x: Math.random() * canvas.width, y: Math.random() * canvas.height });
+            nodes.push({name: nodeName, x: Math.random() * canvas.width, y: Math.random() * canvas.height});
             drawGraph();
             document.getElementById('node-name').value = '';
         } else {
@@ -20,20 +20,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.getElementById('line-one-way').addEventListener('click', function() {
+    document.getElementById('line-one-way').addEventListener('click', function () {
         currentEdgeType = 'one-way';
     });
 
-    document.getElementById('line-two-way').addEventListener('click', function() {
+    document.getElementById('line-two-way').addEventListener('click', function () {
         currentEdgeType = 'two-way';
     });
 
-    document.getElementById('erase').addEventListener('click', function() {
+    document.getElementById('erase').addEventListener('click', function () {
         isErasing = !isErasing;
         this.style.backgroundColor = isErasing ? '#ff4444' : '';
     });
 
-    canvas.addEventListener('click', function(event) {
+    canvas.addEventListener('click', function (event) {
         if (isErasing) {
             eraseNode(event);
         } else {
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!currentNodeName) {
                 currentNodeName = clickedNode.name;
             } else {
-                const newEdge = { from: currentNodeName, to: clickedNode.name, type: currentEdgeType };
+                const newEdge = {from: currentNodeName, to: clickedNode.name, type: currentEdgeType};
                 edges.push(newEdge);
                 currentNodeName = '';
                 drawGraph();
@@ -109,15 +109,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function isPointOnLine(px, py, x1, y1, x2, y2) {
         const distance = Math.abs((y2 - y1) * px - (x2 - x1) * py + x2 * y1 - y2 * x1) /
-                         Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
-        return distance < 10; // Точність вибору лінії
+            Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
+        return distance < 10;
     }
 
     function updateMatrix() {
         const matrix = document.getElementById('matrix');
         matrix.innerHTML = '';
+
         const size = nodes.length;
-        const matrixData = Array.from({ length: size }, () => Array(size).fill(0));
+        const matrixData = Array.from({length: size}, () => Array(size).fill(0));
 
         edges.forEach(edge => {
             const fromIndex = nodes.findIndex(node => node.name === edge.from);
@@ -130,15 +131,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        const headerRow = document.createElement('tr');
+        const emptyHeaderCell = document.createElement('th');
+        emptyHeaderCell.textContent = '';
+        headerRow.appendChild(emptyHeaderCell);
+
+        nodes.forEach(node => {
+            const headerCell = document.createElement('th');
+            headerCell.textContent = node.name;
+            headerRow.appendChild(headerCell);
+        });
+
+        matrix.appendChild(headerRow);
+
         for (let i = 0; i < size; i++) {
             const row = document.createElement('tr');
-            const headerCell = document.createElement('th');
-            headerCell.textContent = nodes[i].name;
-            row.appendChild(headerCell);
+            const rowHeaderCell = document.createElement('th');
+            rowHeaderCell.textContent = nodes[i].name;
+            row.appendChild(rowHeaderCell);
 
             for (let j = 0; j < size; j++) {
                 const cell = document.createElement('td');
-                cell.textContent = (i === j) ? '0' : matrixData[i][j]; // Центр діагоналі завжди 0
+                cell.textContent = (i === j) ? '0' : matrixData[i][j];
                 row.appendChild(cell);
             }
 
@@ -146,7 +160,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    canvas.addEventListener('mousedown', function(event) {
+
+    canvas.addEventListener('mousedown', function (event) {
         const clickedNode = nodes.find(node => Math.hypot(node.x - event.offsetX, node.y - event.offsetY) < 20);
         if (clickedNode) {
             selectedNode = clickedNode;
@@ -154,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    canvas.addEventListener('mousemove', function(event) {
+    canvas.addEventListener('mousemove', function (event) {
         if (isDragging && selectedNode) {
             selectedNode.x = event.offsetX;
             selectedNode.y = event.offsetY;
@@ -163,49 +178,49 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    canvas.addEventListener('mouseup', function() {
+    canvas.addEventListener('mouseup', function () {
         isDragging = false;
         selectedNode = null;
     });
 
-    document.getElementById('submit-matrix').addEventListener('click', function() {
+    document.getElementById('submit-matrix').addEventListener('click', function () {
         alert('Матриця відправлена!');
     });
 
     function getNodeColor(name) {
-    const letter = name.charAt(0).toUpperCase();
+        const letter = name.charAt(0).toUpperCase();
 
-    const colorMap = {
-        'A': '#4CAF50',
-        'B': '#FF5733',
-        'C': '#3375FF',
-        'D': '#FF9800',
-        'E': '#9C27B0',
-        'F': '#00BCD4',
-        'G': '#8BC34A',
-        'H': '#FFEB3B',
-        'I': '#607D8B',
-        'J': '#795548',
-        'K': '#D32F2F',
-        'L': '#3F51B5',
-        'M': '#CDDC39',
-        'N': '#009688',
-        'O': '#2196F3',
-        'P': '#FF5722',
-        'Q': '#9E9E9E',
-        'R': '#E91E63',
-        'S': '#8E24AA',
-        'T': '#F44336',
-        'U': '#00BCD4',
-        'V': '#607D8B',
-        'W': '#795548',
-        'X': '#FFC107',
-        'Y': '#00C853',
-        'Z': '#FF4081',
-    };
+        const colorMap = {
+            'A': '#4CAF50',
+            'B': '#FF5733',
+            'C': '#3375FF',
+            'D': '#FF9800',
+            'E': '#9C27B0',
+            'F': '#00BCD4',
+            'G': '#8BC34A',
+            'H': '#FFEB3B',
+            'I': '#607D8B',
+            'J': '#795548',
+            'K': '#D32F2F',
+            'L': '#3F51B5',
+            'M': '#CDDC39',
+            'N': '#009688',
+            'O': '#2196F3',
+            'P': '#FF5722',
+            'Q': '#9E9E9E',
+            'R': '#E91E63',
+            'S': '#8E24AA',
+            'T': '#F44336',
+            'U': '#00BCD4',
+            'V': '#607D8B',
+            'W': '#795548',
+            'X': '#FFC107',
+            'Y': '#00C853',
+            'Z': '#FF4081',
+        };
 
-    return colorMap[letter] || '#FFD700';
-}
+        return colorMap[letter] || '#FFD700';
+    }
 
     function validateNodeName(name) {
         return /^[A-Z][1-9]$/.test(name);
