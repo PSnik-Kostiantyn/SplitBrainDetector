@@ -9,17 +9,17 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedNode = null;
     let isDragging = false;
 
-    // Створення нової ноди
     document.getElementById('create-node').addEventListener('click', function() {
         const nodeName = document.getElementById('node-name').value;
-        if (nodeName) {
+        if (validateNodeName(nodeName)) {
             nodes.push({ name: nodeName, x: Math.random() * canvas.width, y: Math.random() * canvas.height });
             drawGraph();
             document.getElementById('node-name').value = '';
+        } else {
+            alert('Невірний формат назви ноди. Назва має починатися з букви A-Z, за якою йде цифра 1-9.');
         }
     });
 
-    // Вибір типу лінії (в один бік чи в два)
     document.getElementById('line-one-way').addEventListener('click', function() {
         currentEdgeType = 'one-way';
     });
@@ -28,13 +28,11 @@ document.addEventListener('DOMContentLoaded', function() {
         currentEdgeType = 'two-way';
     });
 
-    // Вибір інструменту для стирання
     document.getElementById('erase').addEventListener('click', function() {
         isErasing = !isErasing;
         this.style.backgroundColor = isErasing ? '#ff4444' : '';
     });
 
-    // Слухач на натискання на канвас для малювання ліній
     canvas.addEventListener('click', function(event) {
         if (isErasing) {
             eraseNode(event);
@@ -43,13 +41,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Малювання графа на канвасі
     function drawGraph() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         nodes.forEach(node => {
             ctx.beginPath();
             ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
-            ctx.fillStyle = '#4CAF50';
+            ctx.fillStyle = getNodeColor(node.name);
             ctx.fill();
             ctx.stroke();
             ctx.fillStyle = '#fff';
@@ -70,7 +67,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Додавання лінії між двома нодами
     function addEdge(event) {
         const clickedNode = nodes.find(node => Math.hypot(node.x - event.offsetX, node.y - event.offsetY) < 20);
         if (clickedNode) {
@@ -86,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Стирання ноди
     function eraseNode(event) {
         const clickedNode = nodes.find(node => Math.hypot(node.x - event.offsetX, node.y - event.offsetY) < 20);
         if (clickedNode) {
@@ -99,7 +94,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Видалення зв'язку між нодами
     function eraseEdge(event) {
         const clickedEdge = edges.find(edge => {
             const fromNode = nodes.find(n => n.name === edge.from);
@@ -113,14 +107,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Перевірка чи точка знаходиться на лінії
     function isPointOnLine(px, py, x1, y1, x2, y2) {
         const distance = Math.abs((y2 - y1) * px - (x2 - x1) * py + x2 * y1 - y2 * x1) /
                          Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
         return distance < 10; // Точність вибору лінії
     }
 
-    // Оновлення матриці
     function updateMatrix() {
         const matrix = document.getElementById('matrix');
         matrix.innerHTML = '';
@@ -140,21 +132,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         for (let i = 0; i < size; i++) {
             const row = document.createElement('tr');
+            const headerCell = document.createElement('th');
+            headerCell.textContent = nodes[i].name;
+            row.appendChild(headerCell);
+
             for (let j = 0; j < size; j++) {
                 const cell = document.createElement('td');
-                cell.textContent = matrixData[i][j];
-                cell.setAttribute('data-node', nodes[i].name);
-                cell.addEventListener('click', function() {
-                    console.log('Nodes:', nodes.map(node => node.name));
-                    console.log('Matrix:', matrixData);
-                });
+                cell.textContent = (i === j) ? '0' : matrixData[i][j]; // Центр діагоналі завжди 0
                 row.appendChild(cell);
             }
+
             matrix.appendChild(row);
         }
     }
 
-    // Переміщення ноди
     canvas.addEventListener('mousedown', function(event) {
         const clickedNode = nodes.find(node => Math.hypot(node.x - event.offsetX, node.y - event.offsetY) < 20);
         if (clickedNode) {
@@ -177,9 +168,46 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedNode = null;
     });
 
-    // Відправлення матриці
     document.getElementById('submit-matrix').addEventListener('click', function() {
-        // Код для відправлення даних (наприклад, через AJAX)
         alert('Матриця відправлена!');
     });
+
+    function getNodeColor(name) {
+    const letter = name.charAt(0).toUpperCase();
+
+    const colorMap = {
+        'A': '#4CAF50',
+        'B': '#FF5733',
+        'C': '#3375FF',
+        'D': '#FF9800',
+        'E': '#9C27B0',
+        'F': '#00BCD4',
+        'G': '#8BC34A',
+        'H': '#FFEB3B',
+        'I': '#607D8B',
+        'J': '#795548',
+        'K': '#D32F2F',
+        'L': '#3F51B5',
+        'M': '#CDDC39',
+        'N': '#009688',
+        'O': '#2196F3',
+        'P': '#FF5722',
+        'Q': '#9E9E9E',
+        'R': '#E91E63',
+        'S': '#8E24AA',
+        'T': '#F44336',
+        'U': '#00BCD4',
+        'V': '#607D8B',
+        'W': '#795548',
+        'X': '#FFC107',
+        'Y': '#00C853',
+        'Z': '#FF4081',
+    };
+
+    return colorMap[letter] || '#FFD700';
+}
+
+    function validateNodeName(name) {
+        return /^[A-Z][1-9]$/.test(name);
+    }
 });
