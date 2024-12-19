@@ -103,10 +103,11 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
             "Content-Type": "application/json",
             "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
         },
-        body: JSON.stringify({ nodes: nodesHorizontal, matrix: matrix })
+        body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix})
     })
         .then((response) => response.json())
         .then((data) => {
+
             console.log("Отримані дані від сервера:", data);
 
             const resultElement = document.getElementById("result");
@@ -117,10 +118,14 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
 
             const probability = data.probability;
 
-            resultElement.textContent = probability === -1
-                ? "Кластер мертвий"
-                : `Ймовірність: ${probability}%`;
-            resultElement.className = probability < 50 ? "green" : "red";
+             if (probability === -1) {
+                resultElement.textContent = "Кластер мертвий";
+                resultElement.className = "grey";
+            }  else {
+                resultElement.textContent = `Ймовірність: ${probability}%`;
+                resultElement.className = probability < 50 ? "green" : "red";
+            }
+
             resultElement.classList.remove("hidden");
         })
         .catch((error) => console.error("Помилка при відправці:", error));

@@ -3,6 +3,8 @@ from django.http import JsonResponse
 import json
 
 from app.model.isDeadCluster import isClusterDead
+from app.model.isSplitBrain import isSplitBrain
+
 
 def dummy_neural_model(nodes, matrix):
     return 45.0
@@ -21,6 +23,9 @@ def index(request):
             if isClusterDead(nodes, matrix):
                 return JsonResponse({"probability": -1})
 
+            if isSplitBrain(nodes, matrix):
+                return JsonResponse({"probability": 100})
+
             probability = dummy_neural_model(nodes, matrix)
             return JsonResponse({"probability": probability})
         except json.JSONDecodeError:
@@ -35,12 +40,16 @@ def cluster(request):
             data = json.loads(request.body)
             nodes = data.get("nodes", [])
             matrix = data.get("matrix", [])
-
+            print(nodes)
+            print(matrix)
             if not matrix or not nodes:
                 return JsonResponse({"error": "Матриця або вузли не можуть бути порожніми."}, status=400)
 
             if isClusterDead(nodes, matrix):
                 return JsonResponse({"probability": -1})
+
+            if isSplitBrain(nodes, matrix):
+                return JsonResponse({"probability": 100})
 
             probability = dummy_neural_model(nodes, matrix)
             return JsonResponse({"probability": probability})

@@ -226,6 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
             .then((response) => response.json())
             .then((data) => {
+
                 console.log("Отримані дані від сервера:", data);
 
                 const resultElement = document.getElementById("result");
@@ -236,10 +237,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const probability = data.probability;
 
-                resultElement.textContent = probability === -1
-                    ? "Кластер мертвий"
-                    : `Ймовірність: ${probability}%`;
-                resultElement.className = probability < 50 ? "green" : "red";
+                if (probability === -1) {
+                    resultElement.textContent = "Кластер мертвий";
+                    resultElement.className = "grey";
+                } else {
+                    resultElement.textContent = `Ймовірність: ${probability}%`;
+                    resultElement.className = probability < 50 ? "green" : "red";
+                }
+
                 resultElement.classList.remove("hidden");
             })
             .catch((error) => console.error("Помилка при відправці:", error));
