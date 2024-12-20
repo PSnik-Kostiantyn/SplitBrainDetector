@@ -1,117 +1,152 @@
-import os
-import random
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
+import random
+import os
+import torch
+import numpy as np
 
-from app.model.isDeadCluster import isClusterDead
-from app.model.isSplitBrain import isSplitBrain
+def dfs(node, graph, visited, component):
+    visited[node] = True
+    component.append(node)
+    for neighbor, connected in enumerate(graph[node]):
+        if connected and not visited[neighbor]:
+            dfs(neighbor, graph, visited, component)
 
-def generate_data(num_nodes):
-    while True:
-        nodes = [random.choice(['A', 'B', 'C']) + str(i) for i in range(num_nodes)]
-        matrix = np.random.randint(0, 2, size=(num_nodes, num_nodes))
-        np.fill_diagonal(matrix, 0)
+def find_islands(matrix):
+    n = len(matrix)
+    visited = [False] * n
+    islands = []
 
-        if isClusterDead(nodes, matrix):
-            continue
+    for node in range(n):
+        if not visited[node] and not all(x == -1 for x in matrix[node]):
+            component = []
+            dfs(node, matrix, visited, component)
+            islands.append(component)
+    return islands
 
-        split_brain = isSplitBrain(nodes, matrix)
-        return nodes, matrix, int(split_brain)
+def isClusterDead(nodes, matrix):
+    if all(all(cell == 0 or cell == -1 for cell in row) for row in matrix):
+        return True
 
-def generate_dataset(samples=70000, max_nodes=5):
-    X, y = [], []
-    max_features = max_nodes + max_nodes * max_nodes
+    required_types = set(node[0].lower() for node in nodes if node != -1)
 
-    for _ in range(samples):
-        num_nodes = 5
-        nodes, matrix, split_brain = generate_data(num_nodes)
+    islands = find_islands(matrix)
 
-        node_types = [ord(node[0]) - ord('A') + 1 for node in nodes]
-        flattened_matrix = matrix.flatten().tolist()
+    for island in islands:
+        types_in_island = set()
+        for node_index in island:
+            if nodes[node_index] != -1:
+                node_type = nodes[node_index][0].lower()
+                types_in_island.add(node_type)
 
-        features = node_types + flattened_matrix
+        if required_types.issubset(types_in_island):
+            return False
 
-        padded_features = features + [-1] * (max_features - len(features))
-        X.append(padded_features)
-        y.append(split_brain)
+    return True
 
-    return np.array(X, dtype=float), np.array(y)
+def isSplitBrain(nodes, matrix):
+    node_types = set(node[0] for node in nodes if node != -1)
 
-class SplitBrainDataset(Dataset):
-    def __init__(self, X, y):
-        self.X = torch.tensor(X, dtype=torch.float32)
-        self.y = torch.tensor(y, dtype=torch.float32)
+    islands = find_islands(matrix)
 
-    def __len__(self):
-        return len(self.X)
+    functional_islands = 0
+    for island in islands:
+        types_present = set(nodes[i][0] for i in island if nodes[i] != -1)
 
-    def __getitem__(self, idx):
-        return self.X[idx], self.y[idx]
+        if node_types.issubset(types_present):
+            functional_islands += 1
+            if functional_islands >= 2:
+                return True
 
+    return False
+
+def generate_cluster():
+    num_nodes = random.randint(2, 9)
+    nodes = [random.choice(["A", "B", "C"]) for _ in range(num_nodes)]
+    matrix = np.random.choice([0, 1], size=(num_nodes, num_nodes), p=[0.7, 0.3])
+    np.fill_diagonal(matrix, 0)  # Без самозв'язків
+    return nodes, matrix
+
+def pad_cluster(nodes, matrix, max_nodes=9):
+    padded_nodes = nodes + [-1] * (max_nodes - len(nodes))
+    padded_matrix = np.full((max_nodes, max_nodes), -1)
+    padded_matrix[:len(matrix), :len(matrix)] = matrix
+    return padded_nodes, padded_matrix
 
 class SplitBrainModel(nn.Module):
-    def __init__(self, input_size):
+    def __init__(self):
         super(SplitBrainModel, self).__init__()
-        self.fc1 = nn.Linear(input_size, 128)
+        self.fc1 = nn.Linear(9 * 9 + 9, 128)
         self.fc2 = nn.Linear(128, 64)
         self.fc3 = nn.Linear(64, 1)
-        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        x = self.sigmoid(self.fc3(x))
+        x = torch.sigmoid(self.fc3(x))
         return x
 
+def train_model():
+    model = SplitBrainModel()
+    criterion = nn.BCELoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+    for epoch in range(10):
+        for _ in range(70000):
+            nodes, matrix = generate_cluster()
+            while isClusterDead(nodes, matrix):
+                nodes, matrix = generate_cluster()
+
+            padded_nodes, padded_matrix = pad_cluster(nodes, matrix)
+            x_nodes = [1 if n == "A" else 2 if n == "B" else 3 for n in padded_nodes]
+            x_matrix = padded_matrix.flatten()
+            x_input = torch.tensor(x_nodes + x_matrix.tolist(), dtype=torch.float32)
+            x_input = x_input / 3.0  # Нормалізація
+
+            label = isSplitBrain(nodes, matrix)
+            y_target = torch.tensor([label], dtype=torch.float32)
+
+            optimizer.zero_grad()
+            output = model(x_input)
+            loss = criterion(output, y_target)
+            loss.backward()
+            optimizer.step()
+
+        print(f"Epoch {epoch + 1}, Loss: {loss.item()}")
+
+    return model
+
+def save_model(model, filename="split_brain_modellll.pth"):
+    torch.save(model.state_dict(), filename)
 
 def predict_neural_model(nodes, matrix):
-    model_path = 'split_brain_model.pth'
-    num_nodes = len(nodes)
-    node_types = [ord(node[0]) - ord('A') for node in nodes]
+    model_path = 'split_brain_modellll.pth'
 
-    if isinstance(matrix, list):
-        matrix = np.array(matrix)
+    def preprocess(nodes, matrix):
+        max_nodes = 9
+        padded_nodes, padded_matrix = pad_cluster(nodes, matrix, max_nodes)
+        x_nodes = [1 if n == "A" else 2 if n == "B" else 3 for n in padded_nodes]
+        x_matrix = padded_matrix.flatten()
+        x_input = torch.tensor(x_nodes + x_matrix.tolist(), dtype=torch.float32)
+        return x_input / 3.0
 
-    flattened_matrix = matrix.flatten().tolist()
-    features = node_types + flattened_matrix
-    input_size = len(features)
+    def load_model():
+        model = SplitBrainModel()
+        if os.path.exists(model_path):
+            model.load_state_dict(torch.load(model_path))
+            model.eval()
+        else:
+            print("Модель не знайдена. Починається тренування...")
+            model = train_model()
+            save_model(model, model_path)
+        return model
 
-    if not os.path.exists(model_path):
-        print("Start learning")
-        X, y = generate_dataset(samples=70000, max_nodes=5)
+    x_input = preprocess(nodes, matrix)
 
-        dataset = SplitBrainDataset(X, y)
-        dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
-
-        model = SplitBrainModel(input_size=input_size)
-        optimizer = optim.Adam(model.parameters(), lr=0.001)
-        criterion = nn.BCELoss()
-
-        # Навчання
-        model.train()
-        for epoch in range(10):
-            epoch_loss = 0
-            for batch_X, batch_y in dataloader:
-                optimizer.zero_grad()
-                outputs = model(batch_X).squeeze()
-                loss = criterion(outputs, batch_y)
-                loss.backward()
-                optimizer.step()
-                epoch_loss += loss.item()
-            print(f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}")
-
-        # Збереження моделі
-        torch.save(model.state_dict(), model_path)
-        print("Model saved")
-    else:
-        model = SplitBrainModel(input_size=input_size)
-        model.load_state_dict(torch.load(model_path))
-        model.eval()
+    model = load_model()
 
     with torch.no_grad():
-        input_tensor = torch.tensor([features], dtype=torch.float32)
-        prediction = model(input_tensor).item()
+        prediction = model(x_input).item()
         return prediction
+

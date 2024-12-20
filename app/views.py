@@ -21,6 +21,7 @@ def index(request):
                 return JsonResponse({"probability": -1})
 
             if isSplitBrain(nodes, matrix):
+                print("100%")
                 return JsonResponse({"probability": 100})
 
             probability = predict_neural_model(nodes, matrix)
