@@ -4,6 +4,7 @@ import json
 
 from app.model.isDeadCluster import isClusterDead
 from app.model.isSplitBrain import isSplitBrain
+from app.model.neuralModel import predict_neural_model
 
 
 def dummy_neural_model(nodes, matrix):
@@ -26,7 +27,7 @@ def index(request):
             if isSplitBrain(nodes, matrix):
                 return JsonResponse({"probability": 100})
 
-            probability = dummy_neural_model(nodes, matrix)
+            probability = predict_neural_model(nodes, matrix)
             return JsonResponse({"probability": probability})
         except json.JSONDecodeError:
             return JsonResponse({"error": "Невірний формат JSON."}, status=400)
@@ -51,7 +52,7 @@ def cluster(request):
             if isSplitBrain(nodes, matrix):
                 return JsonResponse({"probability": 100})
 
-            probability = dummy_neural_model(nodes, matrix)
+            probability = predict_neural_model(nodes, matrix)
             return JsonResponse({"probability": probability})
         except json.JSONDecodeError:
             return JsonResponse({"error": "Невірний формат JSON."}, status=400)

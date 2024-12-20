@@ -31,7 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
         resetForm();
     });
 
-    // Функція для генерації вузлів з рандомним повторенням типів
     function generateNodes(size) {
         const types = ["A", "B", "C"];
         const nodes = [];
@@ -42,7 +41,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return nodes;
     }
 
-    // Функція для генерації матриці доступності
     function generateMatrix(size) {
         const matrix = Array(size)
             .fill(null)
@@ -57,7 +55,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return matrix;
     }
 
-    // Функція для рендеру матриці у вигляді HTML-таблиці
     function renderMatrix(nodes, matrix) {
         let tableHTML = `<table><thead><tr><th></th>`;
         nodes.forEach((node) => {

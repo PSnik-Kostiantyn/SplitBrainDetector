@@ -1,8 +1,6 @@
 def isSplitBrain(nodes, matrix):
 
     node_types = set(node[0] for node in nodes)
-    print(node_types)
-
     def find_islands(matrix):
         size = len(matrix)
         visited = [False] * size

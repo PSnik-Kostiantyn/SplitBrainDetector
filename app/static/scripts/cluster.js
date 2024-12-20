@@ -12,9 +12,14 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('create-node').addEventListener('click', function () {
         const nodeName = document.getElementById('node-name').value;
         if (validateNodeName(nodeName)) {
-            nodes.push({name: nodeName, x: Math.random() * canvas.width, y: Math.random() * canvas.height});
-            drawGraph();
-            document.getElementById('node-name').value = '';
+            const existingNode = nodes.find(node => node.name === nodeName);
+            if (existingNode) {
+                alert('Ця назва ноди вже існує. Виберіть іншу назву.');
+            } else {
+                nodes.push({name: nodeName, x: Math.random() * canvas.width, y: Math.random() * canvas.height});
+                drawGraph();
+                document.getElementById('node-name').value = '';
+            }
         } else {
             alert('Невірний формат назви ноди. Назва має починатися з букви A-Z, за якою йде цифра 1-9.');
         }
@@ -192,11 +197,9 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Створення матриці доступності
         const size = nodes.length;
         const matrix = Array.from({length: size}, () => Array(size).fill(0));
 
-        // Заповнення матриці
         edges.forEach(edge => {
             const fromIndex = nodes.findIndex(node => node.name === edge.from);
             const toIndex = nodes.findIndex(node => node.name === edge.to);
@@ -208,7 +211,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Гарантування, що центральна діагональ завжди містить лише нулі
         for (let i = 0; i < size; i++) {
             matrix[i][i] = 0;
         }
