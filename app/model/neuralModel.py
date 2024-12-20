@@ -1,19 +1,16 @@
 import os
 import random
 import numpy as np
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.optimizers import Adam
-
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, Dataset
 
 from app.model.isDeadCluster import isClusterDead
 from app.model.isSplitBrain import isSplitBrain
 
-
-# Генерація одного набору даних
-def generate_data():
+def generate_data(num_nodes):
     while True:
-        num_nodes = random.randint(2, 9)
         nodes = [random.choice(['A', 'B', 'C']) + str(i) for i in range(num_nodes)]
         matrix = np.random.randint(0, 2, size=(num_nodes, num_nodes))
         np.fill_diagonal(matrix, 0)
@@ -24,47 +21,97 @@ def generate_data():
         split_brain = isSplitBrain(nodes, matrix)
         return nodes, matrix, int(split_brain)
 
-
-# Генерація всіх даних
-def generate_dataset(samples=70000):
+def generate_dataset(samples=70000, max_nodes=5):
     X, y = [], []
+    max_features = max_nodes + max_nodes * max_nodes
+
     for _ in range(samples):
-        nodes, matrix, split_brain = generate_data()
+        num_nodes = 5
+        nodes, matrix, split_brain = generate_data(num_nodes)
+
+        node_types = [ord(node[0]) - ord('A') + 1 for node in nodes]
         flattened_matrix = matrix.flatten().tolist()
-        X.append(flattened_matrix)
+
+        features = node_types + flattened_matrix
+
+        padded_features = features + [-1] * (max_features - len(features))
+        X.append(padded_features)
         y.append(split_brain)
-    return np.array(X, dtype=object), np.array(y)
+
+    return np.array(X, dtype=float), np.array(y)
+
+class SplitBrainDataset(Dataset):
+    def __init__(self, X, y):
+        self.X = torch.tensor(X, dtype=torch.float32)
+        self.y = torch.tensor(y, dtype=torch.float32)
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        return self.X[idx], self.y[idx]
 
 
-# Функція передбачення
+class SplitBrainModel(nn.Module):
+    def __init__(self, input_size):
+        super(SplitBrainModel, self).__init__()
+        self.fc1 = nn.Linear(input_size, 128)
+        self.fc2 = nn.Linear(128, 64)
+        self.fc3 = nn.Linear(64, 1)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        x = self.sigmoid(self.fc3(x))
+        return x
+
+
 def predict_neural_model(nodes, matrix):
-    model_path = 'split_brain_model.h5'
+    model_path = 'split_brain_model.pth'
+    num_nodes = len(nodes)
+    node_types = [ord(node[0]) - ord('A') for node in nodes]
 
-    # Завантаження або створення моделі
+    if isinstance(matrix, list):
+        matrix = np.array(matrix)
+
+    flattened_matrix = matrix.flatten().tolist()
+    features = node_types + flattened_matrix
+    input_size = len(features)
+
     if not os.path.exists(model_path):
         print("Start learning")
-        X, y = generate_dataset(70000)
+        X, y = generate_dataset(samples=70000, max_nodes=5)
 
-        # Визначення фіксованого розміру матриці для нейронної мережі
-        max_matrix_size = max(len(row) for row in X)
-        X = np.array([np.pad(row, (0, max_matrix_size - len(row)), constant_values=0) for row in X], dtype=float)
+        dataset = SplitBrainDataset(X, y)
+        dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-        model = Sequential([
-            Dense(128, input_dim=X.shape[1], activation='relu'),
-            Dense(64, activation='relu'),
-            Dense(1, activation='sigmoid')
-        ])
-        model.compile(optimizer=Adam(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
-        model.fit(X, y, epochs=10, batch_size=32, validation_split=0.2)
-        model.save(model_path)
+        model = SplitBrainModel(input_size=input_size)
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        criterion = nn.BCELoss()
+
+        # Навчання
+        model.train()
+        for epoch in range(10):
+            epoch_loss = 0
+            for batch_X, batch_y in dataloader:
+                optimizer.zero_grad()
+                outputs = model(batch_X).squeeze()
+                loss = criterion(outputs, batch_y)
+                loss.backward()
+                optimizer.step()
+                epoch_loss += loss.item()
+            print(f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}")
+
+        # Збереження моделі
+        torch.save(model.state_dict(), model_path)
         print("Model saved")
     else:
-        model = load_model(model_path)
+        model = SplitBrainModel(input_size=input_size)
+        model.load_state_dict(torch.load(model_path))
+        model.eval()
 
-    # Передбачення
-    num_nodes = len(nodes)
-    flattened_matrix = np.array(matrix).flatten()
-    padded_matrix = np.pad(flattened_matrix, (0, num_nodes ** 2 - len(flattened_matrix)), constant_values=0)
-    input_data = padded_matrix.reshape(1, -1)
-    prediction = model.predict(input_data)[0][0]
-    return round(prediction * 100, 2)
+    with torch.no_grad():
+        input_tensor = torch.tensor([features], dtype=torch.float32)
+        prediction = model(input_tensor).item()
+        return prediction
