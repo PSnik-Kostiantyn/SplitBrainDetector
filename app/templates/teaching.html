@@ -35,8 +35,12 @@
             <button id="split-brain-no" class="button red hidden">Нема split brain</button>
         </div>
     </div>
+
+    <div id="result" class="hidden"></div>
+
 </section>
 
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 <script src="../static/scripts/teaching.js"></script>
 </body>
 </html>

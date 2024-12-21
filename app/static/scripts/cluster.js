@@ -191,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('submit-matrix').addEventListener('click', function () {
         const nodesHorizontal = nodes.map(node => node.name);
 
-        // Перевірка кількості нод
         if (nodesHorizontal.length === 0) {
             alert("Матриця порожня, додайте вузли та ребра.");
             return;

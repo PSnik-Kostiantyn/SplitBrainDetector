@@ -65,7 +65,7 @@ def generate_cluster():
     num_nodes = random.randint(2, 9)
     nodes = [random.choice(["A", "B", "C"]) for _ in range(num_nodes)]
     matrix = np.random.choice([0, 1], size=(num_nodes, num_nodes), p=[0.7, 0.3])
-    np.fill_diagonal(matrix, 0)  # Без самозв'язків
+    np.fill_diagonal(matrix, 0)
     return nodes, matrix
 
 def pad_cluster(nodes, matrix, max_nodes=9):
@@ -93,7 +93,7 @@ def train_model():
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     for epoch in range(10):
-        for _ in range(70000):
+        for _ in range(100000):
             nodes, matrix = generate_cluster()
             while isClusterDead(nodes, matrix):
                 nodes, matrix = generate_cluster()
@@ -117,11 +117,11 @@ def train_model():
 
     return model
 
-def save_model(model, filename="split_brain_modellll.pth"):
+def save_model(model, filename="split_brain_model_new_1.pth"):
     torch.save(model.state_dict(), filename)
 
 def predict_neural_model(nodes, matrix):
-    model_path = 'split_brain_modellll.pth'
+    model_path = 'split_brain_model_good_2.pth'
 
     def preprocess(nodes, matrix):
         max_nodes = 9
@@ -149,4 +149,47 @@ def predict_neural_model(nodes, matrix):
     with torch.no_grad():
         prediction = model(x_input).item()
         return prediction
+
+
+def teach_neural_model(nodes, matrix):
+    model_path = "split_brain_model_good_2.pth"
+
+    def preprocess(nodes, matrix):
+        max_nodes = 9
+        padded_nodes, padded_matrix = pad_cluster(nodes, matrix, max_nodes)
+        x_nodes = [1 if n == "A" else 2 if n == "B" else 3 for n in padded_nodes]
+        x_matrix = padded_matrix.flatten()
+        x_input = torch.tensor(x_nodes + x_matrix.tolist(), dtype=torch.float32)
+        return x_input / 3.0
+
+    def load_model():
+        model = SplitBrainModel()
+        if os.path.exists(model_path):
+            model.load_state_dict(torch.load(model_path))
+            print("Модель успішно завантажена.")
+        else:
+            print("Модель не знайдена. Створення нової моделі...")
+        return model
+
+    model = load_model()
+    model.train()
+
+    x_input = preprocess(nodes, matrix)
+    x_input = x_input.unsqueeze(0)
+
+    label = isSplitBrain(nodes, matrix)
+    y_target = torch.tensor([[label]], dtype=torch.float32)
+
+    criterion = nn.BCELoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+    optimizer.zero_grad()
+    output = model(x_input)
+    loss = criterion(output, y_target)
+    loss.backward()
+    optimizer.step()
+
+    torch.save(model.state_dict(), model_path)
+    print(f"Модель успішно оновлена та збережена. Втрата: {loss.item():.6f}")
+    return loss.item()
 

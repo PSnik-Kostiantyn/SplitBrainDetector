@@ -6,30 +6,96 @@ document.addEventListener("DOMContentLoaded", function () {
     const splitBrainYes = document.getElementById("split-brain-yes");
     const splitBrainNo = document.getElementById("split-brain-no");
 
+    let currentNodes = [];
+    let currentMatrix = [];
+
     confirmationCheckbox.addEventListener("change", function () {
         generateButton.disabled = !this.checked;
         generateButton.classList.toggle("gray", !this.checked);
     });
 
     generateButton.addEventListener("click", function () {
-        const size = Math.floor(Math.random() * 4) + 2; // Random size between 2 and 5
-        const nodes = generateNodes(size);
-        const matrix = generateMatrix(size);
-        renderMatrix(nodes, matrix);
+        const size = Math.floor(Math.random() * 4) + 2;
+        currentNodes = generateNodes(size);
+        currentMatrix = generateMatrix(size);
+        renderMatrix(currentNodes, currentMatrix);
         matrixSection.classList.remove("hidden");
         splitBrainYes.classList.remove("hidden");
         splitBrainNo.classList.remove("hidden");
     });
 
     splitBrainYes.addEventListener("click", function () {
-        alert("Ви вказали, що є split brain.");
-        resetForm();
+        sendToBackend(true);
     });
 
     splitBrainNo.addEventListener("click", function () {
-        alert("Ви вказали, що нема split brain.");
-        resetForm();
+        sendToBackend(false);
     });
+
+    function sendToBackend(isSplitBrain) {
+    const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
+
+    const payload = {
+        nodes: currentNodes,
+        matrix: currentMatrix,
+        split_brain: isSplitBrain ? 1 : 0,
+    };
+
+    fetch(window.location.href, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify(payload),
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP помилка: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log("Отримані дані від сервера:", data);
+
+            const resultElement = document.getElementById("result");
+            if (!resultElement) {
+                console.error("Елемент з id='result' не знайдено.");
+                return;
+            }
+
+            const probability = data.probability;
+            if (probability === undefined) {
+                alert("Помилка: некоректна відповідь сервера.");
+                return;
+            }
+
+            if (probability === -1) {
+                resultElement.textContent = "Кластер мертвий.";
+                resultElement.className = "grey";
+            } else if (probability === -2) {
+                resultElement.textContent = "Неправильна класифікація: є спліт брейн, але вказано, що його немає.";
+                resultElement.className = "yellow";
+            } else if (probability === -3) {
+                resultElement.textContent = "Проблема моделі.";
+                resultElement.className = "orange";
+            } else {
+                resultElement.textContent = `Успіх! ${probability}`;
+                resultElement.className = probability < 50 ? "green" : "red";
+            }
+
+            resultElement.classList.remove("hidden");
+        })
+        .catch((error) => {
+            console.error("Помилка при відправці:", error);
+            const resultElement = document.getElementById("result");
+            if (resultElement) {
+                resultElement.textContent = "Сталася помилка під час обробки запиту.";
+                resultElement.className = "error";
+                resultElement.classList.remove("hidden");
+            }
+        });
+}
 
     function generateNodes(size) {
         const types = ["A", "B", "C"];

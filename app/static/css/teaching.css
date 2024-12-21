@@ -100,3 +100,38 @@ button.red {
     padding: 10px;
     text-align: center;
 }
+
+.hidden {
+    display: none;
+}
+
+.grey {
+    color: grey;
+}
+
+.yellow {
+    color: yellow;
+}
+
+.orange {
+    color: orange;
+}
+
+.green {
+    color: green;
+}
+
+.red {
+    color: red;
+}
+
+.error {
+    color: crimson;
+    font-weight: bold;
+}
+
+#result {
+    margin-top: 20px;
+    text-align: center;
+}
+
