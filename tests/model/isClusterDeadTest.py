@@ -74,3 +74,5 @@ class TestClusterFunctions(unittest.TestCase):
         nodes[3] = 'B2'
         self.assertTrue(isClusterDead(nodes, matrix))
 
+if __name__ == '__main__':
+    unittest.main()
