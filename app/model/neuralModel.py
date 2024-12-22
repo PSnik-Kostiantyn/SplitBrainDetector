@@ -102,7 +102,7 @@ def train_model():
             x_nodes = [1 if n == "A" else 2 if n == "B" else 3 for n in padded_nodes]
             x_matrix = padded_matrix.flatten()
             x_input = torch.tensor(x_nodes + x_matrix.tolist(), dtype=torch.float32)
-            x_input = x_input / 3.0  # Нормалізація
+            x_input = x_input / 3.0
 
             label = isSplitBrain(nodes, matrix)
             y_target = torch.tensor([label], dtype=torch.float32)

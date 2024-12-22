@@ -73,9 +73,6 @@ def teach(request):
             print(matrix)
             print(split_brain)
 
-            if not matrix or not nodes:
-                return JsonResponse({"error": "Матриця або вузли не можуть бути порожніми."}, status=400)
-
             if isClusterDead(nodes, matrix):
                 return JsonResponse({"probability": -1})
 

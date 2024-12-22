@@ -33,69 +33,69 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function sendToBackend(isSplitBrain) {
-    const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
+        const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
 
-    const payload = {
-        nodes: currentNodes,
-        matrix: currentMatrix,
-        split_brain: isSplitBrain ? 1 : 0,
-    };
+        const payload = {
+            nodes: currentNodes,
+            matrix: currentMatrix,
+            split_brain: isSplitBrain ? 1 : 0,
+        };
 
-    fetch(window.location.href, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify(payload),
-    })
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error(`HTTP помилка: ${response.status}`);
-            }
-            return response.json();
+        fetch(window.location.href, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken,
+            },
+            body: JSON.stringify(payload),
         })
-        .then((data) => {
-            console.log("Отримані дані від сервера:", data);
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP помилка: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                console.log("Отримані дані від сервера:", data);
 
-            const resultElement = document.getElementById("result");
-            if (!resultElement) {
-                console.error("Елемент з id='result' не знайдено.");
-                return;
-            }
+                const resultElement = document.getElementById("result");
+                if (!resultElement) {
+                    console.error("Елемент з id='result' не знайдено.");
+                    return;
+                }
 
-            const probability = data.probability;
-            if (probability === undefined) {
-                alert("Помилка: некоректна відповідь сервера.");
-                return;
-            }
+                const probability = data.probability;
+                if (probability === undefined) {
+                    alert("Помилка: некоректна відповідь сервера.");
+                    return;
+                }
 
-            if (probability === -1) {
-                resultElement.textContent = "Кластер мертвий.";
-                resultElement.className = "grey";
-            } else if (probability === -2) {
-                resultElement.textContent = "Неправильна класифікація: є спліт брейн, але вказано, що його немає.";
-                resultElement.className = "yellow";
-            } else if (probability === -3) {
-                resultElement.textContent = "Проблема моделі.";
-                resultElement.className = "orange";
-            } else {
-                resultElement.textContent = `Успіх! ${probability}`;
-                resultElement.className = probability < 50 ? "green" : "red";
-            }
+                if (probability === -1) {
+                    resultElement.textContent = "Кластер мертвий";
+                    resultElement.className = "grey";
+                } else if (probability === -2) {
+                    resultElement.textContent = "Неправильна класифікація";
+                    resultElement.className = "red";
+                } else if (probability === -3) {
+                    resultElement.textContent = "Проблема моделі.";
+                    resultElement.className = "orange";
+                } else {
+                    resultElement.textContent = `Успіх! ${probability}`;
+                    resultElement.className = probability < 50 ? "green" : "red";
+                }
 
-            resultElement.classList.remove("hidden");
-        })
-        .catch((error) => {
-            console.error("Помилка при відправці:", error);
-            const resultElement = document.getElementById("result");
-            if (resultElement) {
-                resultElement.textContent = "Сталася помилка під час обробки запиту.";
-                resultElement.className = "error";
                 resultElement.classList.remove("hidden");
-            }
-        });
-}
+            })
+            .catch((error) => {
+                console.error("Помилка при відправці:", error);
+                const resultElement = document.getElementById("result");
+                if (resultElement) {
+                    resultElement.textContent = "Сталася помилка під час обробки запиту.";
+                    resultElement.className = "error";
+                    resultElement.classList.remove("hidden");
+                }
+            });
+    }
 
     function generateNodes(size) {
         const types = ["A", "B", "C"];
@@ -129,14 +129,47 @@ document.addEventListener("DOMContentLoaded", function () {
         tableHTML += `</tr></thead><tbody>`;
         matrix.forEach((row, i) => {
             tableHTML += `<tr><th>${nodes[i]}</th>`;
-            row.forEach((cell) => {
-                tableHTML += `<td>${cell}</td>`;
+            row.forEach((cell, j) => {
+                if (i === j) {
+                    tableHTML += `<td class="diagonal">0</td>`;
+                } else {
+                    tableHTML += `
+                    <td>
+                        <input 
+                            type="number" 
+                            class="matrix-input" 
+                            value="${cell}" 
+                            data-row="${i}" 
+                            data-col="${j}" 
+                            min="0" 
+                            max="1"
+                        />
+                    </td>`;
+                }
             });
             tableHTML += `</tr>`;
         });
         tableHTML += `</tbody></table>`;
         matrixContainer.innerHTML = tableHTML;
+
+        const inputs = document.querySelectorAll(".matrix-input");
+        inputs.forEach((input) => {
+            input.addEventListener("input", function () {
+                const row = parseInt(this.getAttribute("data-row"));
+                const col = parseInt(this.getAttribute("data-col"));
+                const value = parseInt(this.value);
+
+                if (value === 0 || value === 1) {
+                    currentMatrix[row][col] = value; // Оновлення матриці
+                    console.log(`Змінено значення: row=${row}, col=${col}, value=${value}`);
+                } else {
+                    alert("Значення має бути 0 або 1!");
+                    this.value = currentMatrix[row][col];
+                }
+            });
+        });
     }
+
 
     function resetForm() {
         matrixSection.classList.add("hidden");
