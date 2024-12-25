@@ -77,3 +77,5 @@ class TeachViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("probability", response.json())
         self.assertIsInstance(response.json()["probability"], (int, float))
+
+

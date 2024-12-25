@@ -137,13 +137,13 @@ def predict_neural_model(nodes, matrix):
             model.load_state_dict(torch.load(model_path))
             model.eval()
         else:
-            print("Модель не знайдена. Починається тренування...")
+            print("Модель не знайдена. Починається тренування...    ")
             model = train_model()
             save_model(model, model_path)
         return model
 
     x_input = preprocess(nodes, matrix)
-
+  #  print(x_input)
     model = load_model()
 
     with torch.no_grad():
