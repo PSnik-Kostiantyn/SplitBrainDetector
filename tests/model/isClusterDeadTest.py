@@ -2,7 +2,6 @@ import unittest
 
 from app.model.isDeadCluster import find_islands, dfs, isClusterDead
 
-
 class TestClusterFunctions(unittest.TestCase):
 
     def test_dfs_multiple_nodes(self):

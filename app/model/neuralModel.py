@@ -92,7 +92,7 @@ def train_model():
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    for epoch in range(10):
+    for epoch in range(30):
         for _ in range(100000):
             nodes, matrix = generate_cluster()
             while isClusterDead(nodes, matrix):
@@ -121,7 +121,7 @@ def save_model(model, filename="split_brain_model_new_1.pth"):
     torch.save(model.state_dict(), filename)
 
 def predict_neural_model(nodes, matrix):
-    model_path = 'split_brain_model_good_2.pth'
+    model_path = 'split_brain_model_new_1.pth'
 
     def preprocess(nodes, matrix):
         max_nodes = 9
