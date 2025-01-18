@@ -25,7 +25,7 @@ def find_islands(matrix):
             islands.append(component)
     return islands
 
-def isClusterDead(nodes, matrix):
+def isClusterDead_2(nodes, matrix):
     if all(all(cell == 0 or cell == -1 for cell in row) for row in matrix):
         return True
 
@@ -45,7 +45,7 @@ def isClusterDead(nodes, matrix):
 
     return True
 
-def isSplitBrain(nodes, matrix):
+def isSplitBrain_2(nodes, matrix):
     node_types = set(node[0] for node in nodes if node != -1)
 
     islands = find_islands(matrix)
@@ -95,7 +95,7 @@ def train_model():
     for epoch in range(30):
         for _ in range(100000):
             nodes, matrix = generate_cluster()
-            while isClusterDead(nodes, matrix):
+            while isClusterDead_2(nodes, matrix):
                 nodes, matrix = generate_cluster()
 
             padded_nodes, padded_matrix = pad_cluster(nodes, matrix)
@@ -104,7 +104,7 @@ def train_model():
             x_input = torch.tensor(x_nodes + x_matrix.tolist(), dtype=torch.float32)
             x_input = x_input / 3.0
 
-            label = isSplitBrain(nodes, matrix)
+            label = isSplitBrain_2(nodes, matrix)
             y_target = torch.tensor([label], dtype=torch.float32)
 
             optimizer.zero_grad()
@@ -177,7 +177,7 @@ def teach_neural_model(nodes, matrix):
     x_input = preprocess(nodes, matrix)
     x_input = x_input.unsqueeze(0)
 
-    label = isSplitBrain(nodes, matrix)
+    label = isSplitBrain_2(nodes, matrix)
     y_target = torch.tensor([[label]], dtype=torch.float32)
 
     criterion = nn.BCELoss()
