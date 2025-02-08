@@ -5,6 +5,7 @@ import json
 from app.model.isDeadCluster import isClusterDead
 from app.model.isSplitBrain import isSplitBrain
 from app.model.neuralModel import predict_neural_model, teach_neural_model
+from app.model.randomForest import predict_rf
 
 
 def index(request):
@@ -25,7 +26,7 @@ def index(request):
                 print("100%")
                 return JsonResponse({"probability": 100})
 
-            probability = predict_neural_model(nodes, matrix)
+            probability = predict_rf(nodes, matrix)
             probability = round(probability * 100, 2)
             return JsonResponse({"probability": probability})
         except json.JSONDecodeError:
@@ -51,7 +52,7 @@ def cluster(request):
             if isSplitBrain(nodes, matrix):
                 return JsonResponse({"probability": 100})
 
-            probability = predict_neural_model(nodes, matrix)
+            probability = predict_rf(nodes, matrix)
             probability = round(probability * 100, 2)
             return JsonResponse({"probability": probability})
         except json.JSONDecodeError:
