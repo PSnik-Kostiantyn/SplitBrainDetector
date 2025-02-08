@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 import json
 
+from app.model.gradientBoosting import predict_gb
 from app.model.isDeadCluster import isClusterDead
 from app.model.isSplitBrain import isSplitBrain
 from app.model.neuralModel import predict_neural_model, teach_neural_model
@@ -52,7 +53,7 @@ def cluster(request):
             if isSplitBrain(nodes, matrix):
                 return JsonResponse({"probability": 100})
 
-            probability = predict_rf(nodes, matrix)
+            probability = predict_gb(nodes, matrix)
             probability = round(probability * 100, 2)
             return JsonResponse({"probability": probability})
         except json.JSONDecodeError:
