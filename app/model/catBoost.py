@@ -4,6 +4,9 @@ import numpy as np
 import pickle
 from catboost import CatBoostClassifier
 
+from app.model.gradientBoosting import generate_cluster, isClusterDead_2, isSplitBrain_2
+from app.model.neuralModel import pad_cluster
+
 def preprocess(nodes, matrix):
     max_nodes = 9
     padded_nodes, padded_matrix = pad_cluster(nodes, matrix, max_nodes)
