@@ -235,6 +235,8 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log("Kl")
             if (data.probability_neural === -1) {
                 resultElement.innerHTML = "<p class='grey'>Кластер мертвий</p>";
+            } else if (data.probability_neural === 100) {
+                resultElement.innerHTML = "<p class='red'>Ситуація Split brain</p>";
             } else {
                 resultElement.innerHTML = `
                     <p><strong>Ймовірність нейромережі:</strong> ${data.probability_neural}%</p>

@@ -102,6 +102,7 @@ def load_model():
 
 
 def predict_cb(nodes, matrix):
+    print("CB __________________")
     model = load_model()
     x_input = preprocess(nodes, matrix).reshape(1, -1)
     return model.predict_proba(x_input)[0, 1]

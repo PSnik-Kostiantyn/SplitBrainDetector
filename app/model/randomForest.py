@@ -48,10 +48,9 @@ def load_model():
         return train_model()
 
 def predict_rf(nodes, matrix):
+    print("RF __________________")
     model = load_model()
-    print("Predicting")
     x_input = preprocess(nodes, matrix).reshape(1, -1)
-    print("Ready")
     return model.predict_proba(x_input)[0, 1]
 
 def teach_rf(nodes, matrix):
