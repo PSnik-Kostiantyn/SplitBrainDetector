@@ -218,38 +218,34 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("Matrix:", matrix);
 
         fetch(window.location.href, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
-            },
-            body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix})
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
+        },
+        body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix})
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log("Отримані дані від сервера:", data);
+
+            const resultElement = document.getElementById("result");
+            resultElement.innerHTML = "";
+            resultElement.classList.remove("hidden");
+            console.log("Kl")
+            if (data.probability_neural === -1) {
+                resultElement.innerHTML = "<p class='grey'>Кластер мертвий</p>";
+            } else {
+                resultElement.innerHTML = `
+                    <p><strong>Ймовірність нейромережі:</strong> ${data.probability_neural}%</p>
+                    <p><strong>Ймовірність Random Forest:</strong> ${data.probability_rf}%</p>
+                    <p><strong>Ймовірність Gradient Boosting:</strong> ${data.probability_gb}%</p>
+                    <p><strong>Ймовірність CatBoost:</strong> ${data.probability_cb}%</p>
+                `;
+            }
         })
-            .then((response) => response.json())
-            .then((data) => {
-
-                console.log("Отримані дані від сервера:", data);
-
-                const resultElement = document.getElementById("result");
-                if (data.probability === undefined) {
-                    alert("Помилка: некоректна відповідь сервера.");
-                    return;
-                }
-
-                const probability = data.probability;
-
-                if (probability === -1) {
-                    resultElement.textContent = "Кластер мертвий";
-                    resultElement.className = "grey";
-                } else {
-                    resultElement.textContent = `Ймовірність: ${probability}%`;
-                    resultElement.className = probability < 50 ? "green" : "red";
-                }
-
-                resultElement.classList.remove("hidden");
-            })
-            .catch((error) => console.error("Помилка при відправці:", error));
-    });
+        .catch((error) => console.error("Помилка при відправці:", error));
+});
 
 
     function getNodeColor(name) {

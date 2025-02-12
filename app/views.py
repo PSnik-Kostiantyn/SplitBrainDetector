@@ -28,7 +28,7 @@ def index(request):
                 print("100%")
                 return JsonResponse({"probability": 100})
 
-            probability = predict_rf(nodes, matrix)
+            probability = predict_neural_model(nodes, matrix)
             probability = round(probability * 100, 2)
             return JsonResponse({"probability": probability})
         except json.JSONDecodeError:
@@ -49,14 +49,23 @@ def cluster(request):
                 return JsonResponse({"error": "Матриця або вузли не можуть бути порожніми."}, status=400)
 
             if isClusterDead(nodes, matrix):
-                return JsonResponse({"probability": -1})
+                return JsonResponse({"probability_neural": -1})
 
             if isSplitBrain(nodes, matrix):
-                return JsonResponse({"probability": 100})
+                return JsonResponse({"probability_neural": 100})
 
-            probability = predict_cb(nodes, matrix)
-            probability = round(probability * 100, 2)
-            return JsonResponse({"probability": probability})
+            probability_neural = predict_neural_model(nodes, matrix)
+            probability_rf = predict_rf(nodes, matrix)
+            probability_gb = predict_gb(nodes, matrix)
+            probability_cb = predict_cb(nodes, matrix)
+
+            probability_neural = round(probability_neural * 100, 2)
+            probability_rf = round(probability_rf * 100, 2)
+            probability_gb = round(probability_gb * 100, 2)
+            probability_cb = round(probability_cb * 100, 2)
+
+            return JsonResponse({"probability_neural": probability_neural, "probability_rf": probability_rf,
+                                 "probability_gb": probability_gb, "probability_cb": probability_cb })
         except json.JSONDecodeError:
             return JsonResponse({"error": "Невірний формат JSON."}, status=400)
 

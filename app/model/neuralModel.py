@@ -121,7 +121,7 @@ def save_model(model, filename="split_brain_model_new_1.pth"):
     torch.save(model.state_dict(), filename)
 
 def predict_neural_model(nodes, matrix):
-    model_path = 'split_brain_model_new_1.pth'
+    model_path = 'split_brain_model_test.pth'
 
     def preprocess(nodes, matrix):
         max_nodes = 9
