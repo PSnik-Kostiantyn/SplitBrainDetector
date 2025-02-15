@@ -17,7 +17,8 @@ def pad_cluster(nodes, matrix, max_nodes=9):
 def preprocess(nodes, matrix):
     max_nodes = 9
     padded_nodes, padded_matrix = pad_cluster(nodes, matrix, max_nodes)
-    x_nodes = [1 if n == "A" else 2 if n == "B" else 3 for n in padded_nodes]
+    x_nodes = [ord(n[0]) - ord("A") + 2 if isinstance(n, str) and len(n) == 1 else -1 for n in padded_nodes]
+
     x_matrix = padded_matrix.flatten()
     return np.array(x_nodes + x_matrix.tolist()) / 3.0
 

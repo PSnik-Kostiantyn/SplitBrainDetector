@@ -128,7 +128,7 @@ def predict_neural_model(nodes, matrix):
     def preprocess(nodes, matrix):
         max_nodes = 9
         padded_nodes, padded_matrix = pad_cluster(nodes, matrix, max_nodes)
-        x_nodes = [1 if n == "A" else 2 if n == "B" else 3 for n in padded_nodes]
+        x_nodes = [2 if n == "A" else 3 if n == "B" else 4 for n in padded_nodes]
         x_matrix = padded_matrix.flatten()
         x_input = torch.tensor(x_nodes + x_matrix.tolist(), dtype=torch.float32)
         return x_input / 3.0
@@ -159,7 +159,7 @@ def teach_neural_model(nodes, matrix):
     def preprocess(nodes, matrix):
         max_nodes = 9
         padded_nodes, padded_matrix = pad_cluster(nodes, matrix, max_nodes)
-        x_nodes = [1 if n == "A" else 2 if n == "B" else 3 for n in padded_nodes]
+        x_nodes = [2 if n == "A" else 3 if n == "B" else 4 for n in padded_nodes]
         x_matrix = padded_matrix.flatten()
         x_input = torch.tensor(x_nodes + x_matrix.tolist(), dtype=torch.float32)
         return x_input / 3.0
