@@ -24,7 +24,8 @@ def preprocess(nodes, matrix):
 
 def train_model():
     print("Start learning")
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model = RandomForestClassifier(n_estimators=100, criterion='gini', max_features='sqrt', random_state=42)
+    # criterion='gini', max_features='sqrt'
     x_train, y_train = [], []
 
     for _ in range(100000):
