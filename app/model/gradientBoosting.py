@@ -82,7 +82,7 @@ def train_model():
     model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=5, random_state=42)
     #learning_rate=0.1, max_depth=5
     X_train, y_train = [], []
-    for _ in range(100000):
+    for _ in range(200000):
         nodes, matrix = generate_cluster()
         while isClusterDead_2(nodes, matrix):
             nodes, matrix = generate_cluster()

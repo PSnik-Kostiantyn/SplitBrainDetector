@@ -81,7 +81,7 @@ def preprocess(nodes, matrix):
 def train_model():
     model = CatBoostClassifier(iterations=100, depth=6, learning_rate=0.1, loss_function='Logloss', verbose=0)
     X_train, y_train = [], []
-    for _ in range(100000):
+    for _ in range(200000):
         nodes, matrix = generate_cluster()
         while isClusterDead_2(nodes, matrix):
             nodes, matrix = generate_cluster()

@@ -28,7 +28,7 @@ def train_model():
     # criterion='gini', max_features='sqrt'
     x_train, y_train = [], []
 
-    for _ in range(100000):
+    for _ in range(200000):
         nodes, matrix = generate_cluster()
         while isClusterDead(nodes, matrix):
             nodes, matrix = generate_cluster()
