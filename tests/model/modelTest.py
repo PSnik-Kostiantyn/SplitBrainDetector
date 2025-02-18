@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import torch
 
-from app.model.neuralModel import dfs, find_islands, isClusterDead_2, isSplitBrain_2, generate_cluster, pad_cluster, \
+from app.model.neuralModel import dfs, find_islands, isClusterDead, isSplitBrain, generate_cluster, pad_cluster, \
     SplitBrainModel, save_model, predict_neural_model, teach_neural_model, train_model
 
 
@@ -35,7 +35,7 @@ class TestNeuralNetwork(unittest.TestCase):
             [0, 0, 0],
             [0, 0, 0]
         ]
-        self.assertTrue(isClusterDead_2(nodes, matrix))
+        self.assertTrue(isClusterDead(nodes, matrix))
 
     def test_isClusterDead_alive_cluster(self):
         nodes = ['A', 'B', 'C']
@@ -44,7 +44,7 @@ class TestNeuralNetwork(unittest.TestCase):
             [1, 0, 1],
             [0, 1, 0]
         ]
-        self.assertFalse(isClusterDead_2(nodes, matrix))
+        self.assertFalse(isClusterDead(nodes, matrix))
 
 
     def test_generate_cluster(self):

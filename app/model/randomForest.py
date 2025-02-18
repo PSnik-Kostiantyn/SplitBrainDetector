@@ -1,26 +1,10 @@
 import os
-import numpy as np
 import pickle
 from sklearn.ensemble import RandomForestClassifier
 
+from app.model.DataPreparation import generate_cluster, preprocess
 from app.model.isDeadCluster import isClusterDead
 from app.model.isSplitBrain import isSplitBrain
-from app.model.neuralModel import generate_cluster
-
-
-def pad_cluster(nodes, matrix, max_nodes=9):
-    padded_nodes = nodes + [-1] * (max_nodes - len(nodes))
-    padded_matrix = np.full((max_nodes, max_nodes), -1)
-    padded_matrix[:len(matrix), :len(matrix)] = matrix
-    return padded_nodes, padded_matrix
-
-def preprocess(nodes, matrix):
-    max_nodes = 9
-    padded_nodes, padded_matrix = pad_cluster(nodes, matrix, max_nodes)
-    x_nodes = [ord(n[0]) - ord("A") + 2 if isinstance(n, str) and len(n) == 1 else -1 for n in padded_nodes]
-
-    x_matrix = padded_matrix.flatten()
-    return np.array(x_nodes + x_matrix.tolist()) / 3.0
 
 def train_model():
     print("Start learning")
