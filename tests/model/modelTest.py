@@ -2,8 +2,9 @@ import unittest
 from unittest.mock import patch, MagicMock
 import torch
 
-from app.model.neuralModel import dfs, find_islands, isClusterDead, isSplitBrain, generate_cluster, pad_cluster, \
-    SplitBrainModel, save_model, predict_neural_model, teach_neural_model, train_model
+from app.model.isDeadCluster import find_islands, dfs
+from app.model.neuralModel import isClusterDead, generate_cluster, pad_cluster, \
+    SplitBrainModel, save_model, predict_neural_model, teach_neural_model
 
 
 class TestNeuralNetwork(unittest.TestCase):
