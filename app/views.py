@@ -2,10 +2,9 @@ from django.shortcuts import render
 from django.http import JsonResponse
 import json
 
+from app.model.DataPreparation import isSplitBrain, isClusterDead
 from app.model.catBoost import predict_cb
 from app.model.gradientBoosting import predict_gb
-from app.model.isDeadCluster import isClusterDead
-from app.model.isSplitBrain import isSplitBrain
 from app.model.neuralModel import predict_neural_model, teach_neural_model
 from app.model.randomForest import predict_rf
 

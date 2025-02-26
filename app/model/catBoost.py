@@ -2,9 +2,7 @@ import os
 import pickle
 from catboost import CatBoostClassifier
 
-from app.model.isDeadCluster import isClusterDead
-from app.model.isSplitBrain import isSplitBrain
-from app.model.DataPreparation import generate_cluster, preprocess
+from app.model.DataPreparation import *
 
 def train_model():
     model = CatBoostClassifier(iterations=100, depth=6, learning_rate=0.1, loss_function='Logloss', verbose=0)

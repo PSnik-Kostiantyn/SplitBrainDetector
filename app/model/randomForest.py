@@ -2,9 +2,7 @@ import os
 import pickle
 from sklearn.ensemble import RandomForestClassifier
 
-from app.model.DataPreparation import generate_cluster, preprocess
-from app.model.isDeadCluster import isClusterDead
-from app.model.isSplitBrain import isSplitBrain
+from app.model.DataPreparation import generate_cluster, preprocess, isClusterDead, isSplitBrain
 
 def train_model():
     print("Start learning")
