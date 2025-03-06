@@ -27,7 +27,7 @@ def index(request):
                 print("100%")
                 return JsonResponse({"probability": 100})
 
-            probability = predict_neural_model(nodes, matrix)
+            probability = predict_cb(nodes, matrix)
             probability = round(probability * 100, 2)
             return JsonResponse({"probability": probability})
         except json.JSONDecodeError:
@@ -57,7 +57,7 @@ def cluster(request):
             probability_rf = predict_rf(nodes, matrix)
             probability_gb = predict_gb(nodes, matrix)
             probability_cb = predict_cb(nodes, matrix)
-
+            # TODO delete neural
             probability_neural = round(probability_neural * 100, 2)
             probability_rf = round(probability_rf * 100, 2)
             probability_gb = round(probability_gb * 100, 2)
