@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 def generate_cluster():
-    num_nodes = random.randint(2, 20)
+    num_nodes = random.randint(2, 9)
     nodes = [random.choice(["A", "B", "C"]) for _ in range(num_nodes)]
     matrix = np.random.choice([0, 1], size=(num_nodes, num_nodes), p=[0.7, 0.3])
     np.fill_diagonal(matrix, 0)
@@ -15,11 +15,14 @@ def pad_cluster(nodes, matrix, max_nodes=20):
     return padded_nodes, padded_matrix
 
 def preprocess(nodes, matrix):
-    max_nodes = 20
+    max_nodes = 9
     padded_nodes, padded_matrix = pad_cluster(nodes, matrix, max_nodes)
-    x_nodes = [ord(n[0]) - ord("A") + 2 if isinstance(n, str) and len(n) == 1 else -1 for n in padded_nodes]
+    x_nodes = [ord(n[0]) - ord("A") + 2 if isinstance(n, str) else -1 for n in padded_nodes]
     x_matrix = padded_matrix.flatten()
-    return np.array(x_nodes + x_matrix.tolist()) / 3.0
+    # print(nodes)
+    # print(matrix)
+    # print(np.array(x_nodes + x_matrix.tolist()))
+    return np.array(x_nodes + x_matrix.tolist())
 
 def dfs(node, graph, visited, component):
     visited[node] = True
@@ -69,3 +72,5 @@ def isSingleType(nodes):
     for node in nodes:
         type_counts[node[0]] = type_counts.get(node[0], 0) + 1
     return any(count < 2 for count in type_counts.values())
+
+# TODO single type implement, split brain correct, sensitivity boost, autotests for accuracy,
