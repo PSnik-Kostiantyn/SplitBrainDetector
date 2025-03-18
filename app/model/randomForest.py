@@ -7,11 +7,23 @@ from app.model.DataPreparation import generate_cluster, preprocess, isClusterDea
 
 def train_model():
     print("Start learning")
-    model = RandomForestClassifier(n_estimators=150, criterion='gini', max_features='sqrt', random_state=42)
+    from sklearn.ensemble import RandomForestClassifier
+
+    model = RandomForestClassifier(
+        n_estimators=300,
+        max_depth=None,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        max_features="sqrt",
+        bootstrap=True,
+        class_weight="balanced",
+        random_state=42
+    )
+
     # criterion='gini', max_features='sqrt'
     x_train, y_train = [], []
 
-    for _ in range(1000000):
+    for _ in range(500000):
         nodes, matrix = generate_cluster()
         while isClusterDead(nodes, matrix):
             nodes, matrix = generate_cluster()

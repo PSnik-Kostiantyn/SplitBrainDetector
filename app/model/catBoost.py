@@ -5,9 +5,15 @@ from catboost import CatBoostClassifier
 from app.model.DataPreparation import *
 
 def train_model():
-    model = CatBoostClassifier(iterations=150, depth=8, learning_rate=0.05, loss_function='Logloss', verbose=0)
+    model = CatBoostClassifier(
+        iterations=500,
+        depth=8,
+        learning_rate=0.2,
+        loss_function='Logloss',
+        verbose=False
+    )
     X_train, y_train = [], []
-    for _ in range(1000000):
+    for _ in range(500000):
         nodes, matrix = generate_cluster()
         while isClusterDead(nodes, matrix):
             nodes, matrix = generate_cluster()

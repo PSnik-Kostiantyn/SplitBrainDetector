@@ -1,6 +1,7 @@
 import unittest
 
-from app.model.isDeadCluster import find_islands, dfs, isClusterDead
+from app.model.DataPreparation import *
+
 
 class TestClusterFunctions(unittest.TestCase):
 

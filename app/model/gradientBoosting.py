@@ -6,15 +6,28 @@ from app.model.DataPreparation import generate_cluster, preprocess, isClusterDea
 
 
 def train_model():
-    model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=5, random_state=42)
+    model = GradientBoostingClassifier(
+        n_estimators=200,
+        learning_rate=0.2,
+        max_depth=7,
+        min_samples_split=2,
+        random_state=42
+    )
+
     #learning_rate=0.1, max_depth=5
     X_train, y_train = [], []
-    for _ in range(1000000):
+    for _ in range(500000):
         nodes, matrix = generate_cluster()
         while isClusterDead(nodes, matrix):
             nodes, matrix = generate_cluster()
         X_train.append(preprocess(nodes, matrix))
         y_train.append(isSplitBrain(nodes, matrix))
+
+        if isSplitBrain(nodes, matrix):
+            for _ in range(3):
+                X_train.append(preprocess(nodes, matrix))
+                y_train.append(True)
+
     model.fit(X_train, y_train)
     with open("split_brain_model_gb.pkl", "wb") as f:
         pickle.dump(model, f)

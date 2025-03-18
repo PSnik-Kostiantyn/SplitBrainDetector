@@ -1,6 +1,7 @@
 import unittest
 
-from app.model.isSplitBrain import isSplitBrain
+from app.model.DataPreparation import isSplitBrain
+
 
 class TestSplitBrainDetection(unittest.TestCase):
     def test_find_islands_single_node(self):

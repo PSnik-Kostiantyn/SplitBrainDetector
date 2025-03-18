@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import torch
 
-from app.model.isDeadCluster import find_islands, dfs
+from app.model.DataPreparation import *
 from app.model.neuralModel import isClusterDead, generate_cluster, pad_cluster, \
     SplitBrainModel, save_model, predict_neural_model, teach_neural_model
 
