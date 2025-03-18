@@ -2,13 +2,14 @@ import os
 import pickle
 from sklearn.ensemble import GradientBoostingClassifier
 
-from app.model.DataPreparation import generate_cluster, preprocess, isClusterDead, isSplitBrain
+from app.model.DataPreparation import generate_cluster, preprocess, isClusterDead, isSplitBrain, isSingleType
+
 
 def train_model():
     model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=5, random_state=42)
     #learning_rate=0.1, max_depth=5
     X_train, y_train = [], []
-    for _ in range(200000):
+    for _ in range(1000000):
         nodes, matrix = generate_cluster()
         while isClusterDead(nodes, matrix):
             nodes, matrix = generate_cluster()
@@ -29,6 +30,8 @@ def load_model():
 
 def predict_gb(nodes, matrix):
     print("GB __________________")
+    if (isSingleType(nodes)):
+        return 0
     model = load_model()
     x_input = preprocess(nodes, matrix).reshape(1, -1)
     return model.predict_proba(x_input)[0, 1]

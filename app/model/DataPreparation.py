@@ -6,6 +6,7 @@ def generate_cluster():
     nodes = [random.choice(["A", "B", "C"]) for _ in range(num_nodes)]
     matrix = np.random.choice([0, 1], size=(num_nodes, num_nodes), p=[0.7, 0.3])
     np.fill_diagonal(matrix, 0)
+    matrix = np.minimum(matrix, matrix.T)
     return nodes, matrix
 
 def pad_cluster(nodes, matrix, max_nodes=20):
@@ -28,7 +29,7 @@ def dfs(node, graph, visited, component):
     visited[node] = True
     component.append(node)
     for neighbor, connected in enumerate(graph[node]):
-        if connected and not visited[neighbor]:
+        if connected and graph[neighbor][node] and not visited[neighbor]:
             dfs(neighbor, graph, visited, component)
 
 def find_islands(matrix):
@@ -73,4 +74,4 @@ def isSingleType(nodes):
         type_counts[node[0]] = type_counts.get(node[0], 0) + 1
     return any(count < 2 for count in type_counts.values())
 
-# TODO single type implement, split brain correct, sensitivity boost, autotests for accuracy,
+# TODO single type implement, split brain correct, sensitivity boost, autotests for accuracy

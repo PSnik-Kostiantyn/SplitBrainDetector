@@ -2,15 +2,16 @@ import os
 import pickle
 from sklearn.ensemble import RandomForestClassifier
 
-from app.model.DataPreparation import generate_cluster, preprocess, isClusterDead, isSplitBrain
+from app.model.DataPreparation import generate_cluster, preprocess, isClusterDead, isSplitBrain, isSingleType
+
 
 def train_model():
     print("Start learning")
-    model = RandomForestClassifier(n_estimators=100, criterion='gini', max_features='sqrt', random_state=42)
+    model = RandomForestClassifier(n_estimators=150, criterion='gini', max_features='sqrt', random_state=42)
     # criterion='gini', max_features='sqrt'
     x_train, y_train = [], []
 
-    for _ in range(200000):
+    for _ in range(1000000):
         nodes, matrix = generate_cluster()
         while isClusterDead(nodes, matrix):
             nodes, matrix = generate_cluster()
@@ -33,6 +34,8 @@ def load_model():
 
 def predict_rf(nodes, matrix):
     print("RF __________________")
+    if (isSingleType(nodes)):
+        return 0
     model = load_model()
     x_input = preprocess(nodes, matrix).reshape(1, -1)
     return model.predict_proba(x_input)[0, 1]
