@@ -218,35 +218,36 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("Matrix:", matrix);
 
         fetch(window.location.href, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
-        },
-        body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix})
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            console.log("Отримані дані від сервера:", data);
-
-            const resultElement = document.getElementById("result");
-            resultElement.innerHTML = "";
-            resultElement.classList.remove("hidden");
-            console.log("Kl")
-            if (data.probability_neural === -1) {
-                resultElement.innerHTML = "<p class='grey'>Кластер мертвий</p>";
-            } else if (data.probability_neural === 100) {
-                resultElement.innerHTML = "<p class='red'>Ситуація Split brain</p>";
-            } else {
-                resultElement.innerHTML = `
-                    <p><strong>Ймовірність Random Forest:</strong> ${data.probability_rf}%</p>
-                    <p><strong>Ймовірність Gradient Boosting:</strong> ${data.probability_gb}%</p>
-                    <p><strong>Ймовірність CatBoost:</strong> ${data.probability_cb}%</p>
-                `;
-            }
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
+            },
+            body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix})
         })
-        .catch((error) => console.error("Помилка при відправці:", error));
-});
+            .then((response) => response.json())
+            .then((data) => {
+                console.log("Отримані дані від сервера:", data);
+
+                const resultElement = document.getElementById("result");
+                resultElement.innerHTML = "";
+                resultElement.classList.remove("hidden");
+                console.log("Kl")
+                if (data.probability_neural === -1) {
+                    resultElement.innerHTML = "<p class='grey'>Кластер мертвий</p>";
+                } else if (data.probability_neural === 100) {
+                    resultElement.innerHTML = "<p class='red'>Ситуація Split brain</p>";
+                } else {
+                    resultElement.innerHTML = `
+                          <p><strong>Ймовірність Random Forest:</strong> ${data.probability_rf}%</p>
+                          <p><strong>Ймовірність Gradient Boosting:</strong> ${data.probability_gb}%</p>
+                          <p><strong>Ймовірність CatBoost:</strong> ${data.probability_cb}%</p>
+                `;
+                }
+
+            })
+            .catch((error) => console.error("Помилка при відправці:", error));
+    });
 
 
     function getNodeColor(name) {
