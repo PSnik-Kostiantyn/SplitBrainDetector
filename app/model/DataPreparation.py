@@ -6,7 +6,7 @@ def generate_cluster():
     nodes = [random.choice(["A", "B", "C"]) for _ in range(num_nodes)]
     matrix = np.random.choice([0, 1], size=(num_nodes, num_nodes), p=[0.7, 0.3])
     np.fill_diagonal(matrix, 0)
-    matrix = np.minimum(matrix, matrix.T)
+    # matrix = np.minimum(matrix, matrix.T)
     return nodes, matrix
 
 def pad_cluster(nodes, matrix, max_nodes=20):

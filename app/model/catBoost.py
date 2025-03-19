@@ -1,27 +1,42 @@
 import os
 import pickle
+from tqdm import tqdm
 from catboost import CatBoostClassifier
 
 from app.model.DataPreparation import *
 
 def train_model():
     model = CatBoostClassifier(
-        iterations=500,
-        depth=8,
-        learning_rate=0.2,
+        iterations=1000,
+        depth=10,
+        learning_rate=0.1,
         loss_function='Logloss',
         verbose=False
     )
     X_train, y_train = [], []
-    for _ in range(500000):
+
+    for _ in tqdm(range(700000) ,desc="Generating normal data"):
         nodes, matrix = generate_cluster()
         while isClusterDead(nodes, matrix):
             nodes, matrix = generate_cluster()
         X_train.append(preprocess(nodes, matrix))
         y_train.append(isSplitBrain(nodes, matrix))
+
+    for _ in tqdm(range(50000),desc="Generating additional split-brain cases"):
+        nodes, matrix = generate_cluster()
+        while not isSplitBrain(nodes, matrix):
+            nodes, matrix = generate_cluster()
+        sample = preprocess(nodes, matrix)
+        for _ in range(3):
+            X_train.append(sample)
+            y_train.append(1)
+
+    print("Навчання моделі...")
     model.fit(X_train, y_train)
+
     with open("split_brain_model_cb.pkl", "wb") as f:
         pickle.dump(model, f)
+
     return model
 
 
@@ -33,10 +48,9 @@ def load_model():
     else:
         return train_model()
 
-
 def predict_cb(nodes, matrix):
     print("CB __________________")
-    if (isSingleType(nodes)):
+    if isSingleType(nodes):
         return 0
     model = load_model()
     x_input = preprocess(nodes, matrix).reshape(1, -1)
@@ -47,7 +61,8 @@ def teach_cb(nodes, matrix):
     model = load_model()
     x_input = preprocess(nodes, matrix).reshape(1, -1)
     label = isSplitBrain(nodes, matrix)
-    model.fit(x_input, [label])
+    print("Донавчання моделі...")
+    model.fit([x_input], [label])
     with open("split_brain_model_cb.pkl", "wb") as f:
         pickle.dump(model, f)
     return label

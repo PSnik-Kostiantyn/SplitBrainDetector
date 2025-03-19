@@ -72,12 +72,13 @@ def predict_neural_model(nodes, matrix):
             save_model(model, model_path)
         return model
 
-    x_input = preprocess(nodes, matrix)
-    #  print(x_input)
-    model = load_model()
-    with torch.no_grad():
-        prediction = model(x_input).item()
-        return prediction
+    return 0
+    # x_input = preprocess(nodes, matrix)
+    # #  print(x_input)
+    # model = load_model()
+    # with torch.no_grad():
+    #     prediction = model(x_input).item()
+    #     return prediction
 
 
 def teach_neural_model(nodes, matrix):
