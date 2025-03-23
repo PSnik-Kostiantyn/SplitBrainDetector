@@ -46,31 +46,54 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    function drawGraph() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        nodes.forEach(node => {
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
-            ctx.fillStyle = getNodeColor(node.name);
-            ctx.fill();
-            ctx.stroke();
-            ctx.fillStyle = '#fff';
-            ctx.fillText(node.name, node.x - 10, node.y + 5);
-        });
+function drawGraph() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        edges.forEach(edge => {
-            const fromNode = nodes.find(n => n.name === edge.from);
-            const toNode = nodes.find(n => n.name === edge.to);
-            if (fromNode && toNode) {
-                ctx.beginPath();
-                ctx.moveTo(fromNode.x, fromNode.y);
-                ctx.lineTo(toNode.x, toNode.y);
-                ctx.strokeStyle = edge.type === 'two-way' ? '#00f' : '#f00';
-                ctx.lineWidth = 2;
-                ctx.stroke();
+    edges.forEach(edge => {
+        const fromNode = nodes.find(n => n.name === edge.from);
+        const toNode = nodes.find(n => n.name === edge.to);
+        if (fromNode && toNode) {
+            ctx.beginPath();
+            ctx.moveTo(fromNode.x, fromNode.y);
+            ctx.lineTo(toNode.x, toNode.y);
+            ctx.strokeStyle = edge.type === 'two-way' ? '#00f' : '#f00';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            if (edge.type === 'one-way') {
+                drawArrowhead(fromNode.x, fromNode.y, toNode.x, toNode.y, ctx.strokeStyle);
             }
-        });
-    }
+        }
+    });
+
+    nodes.forEach(node => {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
+        ctx.fillStyle = getNodeColor(node.name);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.fillText(node.name, node.x - 10, node.y + 5);
+    });
+}
+
+function drawArrowhead(x1, y1, x2, y2, color) {
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const arrowSize = 10;
+    const offset = 15;
+    const arrowX = x2 - offset * Math.cos(angle);
+    const arrowY = y2 - offset * Math.sin(angle);
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(arrowX, arrowY);
+    ctx.lineTo(arrowX - arrowSize * Math.cos(angle - Math.PI / 6), arrowY - arrowSize * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(arrowX - arrowSize * Math.cos(angle + Math.PI / 6), arrowY - arrowSize * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+}
+
+
 
     function addEdge(event) {
         const clickedNode = nodes.find(node => Math.hypot(node.x - event.offsetX, node.y - event.offsetY) < 20);
