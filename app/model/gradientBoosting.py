@@ -43,7 +43,7 @@ def load_model():
 
 def predict_gb(nodes, matrix):
     print("GB __________________")
-    if (isSingleType(nodes)):
+    if isSingleType(nodes):
         return 0
     model = load_model()
     x_input = preprocess(nodes, matrix).reshape(1, -1)

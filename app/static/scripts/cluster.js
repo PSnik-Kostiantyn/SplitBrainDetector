@@ -80,7 +80,7 @@ function drawGraph() {
 function drawArrowhead(x1, y1, x2, y2, color) {
     const angle = Math.atan2(y2 - y1, x2 - x1);
     const arrowSize = 10;
-    const offset = 15;
+    const offset = 20;
     const arrowX = x2 - offset * Math.cos(angle);
     const arrowY = y2 - offset * Math.sin(angle);
 
