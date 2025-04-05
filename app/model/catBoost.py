@@ -11,23 +11,24 @@ def train_model():
         depth=10,
         learning_rate=0.1,
         loss_function='Logloss',
-        verbose=False
+        verbose=False,
+        thread_count=6
     )
     X_train, y_train = [], []
 
-    for _ in tqdm(range(700000) ,desc="Generating normal data"):
+    for _ in tqdm(range(3000000) ,desc="Generating normal data"):
         nodes, matrix = generate_cluster()
         while isClusterDead(nodes, matrix):
             nodes, matrix = generate_cluster()
         X_train.append(preprocess(nodes, matrix))
         y_train.append(isSplitBrain(nodes, matrix))
 
-    for _ in tqdm(range(50000),desc="Generating additional split-brain cases"):
+    for _ in tqdm(range(1500000),desc="Generating additional split-brain cases"):
         nodes, matrix = generate_cluster()
         while not isSplitBrain(nodes, matrix):
             nodes, matrix = generate_cluster()
         sample = preprocess(nodes, matrix)
-        for _ in range(3):
+        for _ in range(2):
             X_train.append(sample)
             y_train.append(1)
 

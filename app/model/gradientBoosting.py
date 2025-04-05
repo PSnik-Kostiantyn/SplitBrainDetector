@@ -1,6 +1,7 @@
 import os
 import pickle
 from sklearn.ensemble import GradientBoostingClassifier
+from tqdm import tqdm
 
 from app.model.DataPreparation import generate_cluster, preprocess, isClusterDead, isSplitBrain, isSingleType
 
@@ -8,7 +9,7 @@ from app.model.DataPreparation import generate_cluster, preprocess, isClusterDea
 def train_model():
     model = GradientBoostingClassifier(
         n_estimators=200,
-        learning_rate=0.2,
+        learning_rate=0.1,
         max_depth=7,
         min_samples_split=2,
         random_state=42
@@ -16,17 +17,22 @@ def train_model():
 
     #learning_rate=0.1, max_depth=5
     X_train, y_train = [], []
-    for _ in range(500000):
+
+    for _ in tqdm(range(900000), desc="Generating normal data"):
         nodes, matrix = generate_cluster()
         while isClusterDead(nodes, matrix):
             nodes, matrix = generate_cluster()
         X_train.append(preprocess(nodes, matrix))
         y_train.append(isSplitBrain(nodes, matrix))
 
-        if isSplitBrain(nodes, matrix):
-            for _ in range(3):
-                X_train.append(preprocess(nodes, matrix))
-                y_train.append(True)
+    for _ in tqdm(range(500000), desc="Generating additional split-brain cases"):
+        nodes, matrix = generate_cluster()
+        while not isSplitBrain(nodes, matrix):
+            nodes, matrix = generate_cluster()
+        sample = preprocess(nodes, matrix)
+        for _ in range(2):
+            X_train.append(sample)
+            y_train.append(1)
 
     model.fit(X_train, y_train)
     with open("split_brain_model_gb.pkl", "wb") as f:

@@ -13,15 +13,15 @@ def train_model():
     start_time = time.time()
 
     model = RandomForestClassifier(
-        n_estimators=500,
-        max_depth=30,
+        n_estimators=400,
+        max_depth=20,
         min_samples_split=2,
         min_samples_leaf=1,
         max_features="sqrt",
         bootstrap=True,
         class_weight="balanced",
         random_state=42,
-        n_jobs=-1
+        n_jobs=7
     )
 
     x_train, y_train = [], []
@@ -47,7 +47,7 @@ def train_model():
 
     print(f"Finished learning in {end_time - start_time:.2f} seconds")
 
-    with open("split_brain_model_rf_2.pkl", "wb") as f:
+    with open("split_brain_model_rf.pkl", "wb") as f:
         pickle.dump(model, f)
     return model
 
@@ -75,6 +75,6 @@ def teach_rf(nodes, matrix):
     x_input = preprocess(nodes, matrix).reshape(1, -1)
     label = isSplitBrain(nodes, matrix)
     model.fit(x_input, [label])
-    with open("split_brain_model_rf_2.pkl", "wb") as f:
+    with open("split_brain_model_rf.pkl", "wb") as f:
         pickle.dump(model, f)
     return label
