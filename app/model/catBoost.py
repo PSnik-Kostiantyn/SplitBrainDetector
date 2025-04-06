@@ -16,14 +16,14 @@ def train_model():
     )
     X_train, y_train = [], []
 
-    for _ in tqdm(range(3000000) ,desc="Generating normal data"):
+    for _ in tqdm(range(900000) ,desc="Generating normal data"):
         nodes, matrix = generate_cluster()
         while isClusterDead(nodes, matrix):
             nodes, matrix = generate_cluster()
         X_train.append(preprocess(nodes, matrix))
         y_train.append(isSplitBrain(nodes, matrix))
 
-    for _ in tqdm(range(1500000),desc="Generating additional split-brain cases"):
+    for _ in tqdm(range(500000),desc="Generating additional split-brain cases"):
         nodes, matrix = generate_cluster()
         while not isSplitBrain(nodes, matrix):
             nodes, matrix = generate_cluster()
