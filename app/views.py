@@ -2,20 +2,25 @@ from django.shortcuts import render
 from django.http import JsonResponse
 import json
 
+from django.views.decorators.csrf import csrf_exempt
+
 from app.model.DataPreparation import isSplitBrain, isClusterDead
 from app.model.catBoost import predict_cb
 from app.model.gradientBoosting import predict_gb
 from app.model.neuralModel import predict_neural_model, teach_neural_model
 from app.model.randomForest import predict_rf
 
-
 def index(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
+            print(request.body)
             nodes = data.get("nodes", [])
             matrix = data.get("matrix", [])
-            model = data.get("model", "cb")
+            model = data.get("model", None)
+
+            if model is None:
+                print("Exception")
 
             print("Model selected: ---- ", model)
 

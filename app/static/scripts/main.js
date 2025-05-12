@@ -47,6 +47,7 @@ function createNodeInput(defaultValue) {
 }
 
 document.getElementById("submit-matrix").addEventListener("click", () => {
+    const selectedModel = document.getElementById("model-choice").value;
     const table = document.querySelector("table");
     const rows = table.rows;
 
@@ -95,18 +96,21 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
     }
 
     console.log("Nodes:", nodesHorizontal);
+    console.log("Model:", selectedModel);
     console.log("Matrix:", matrix);
 
-    const model = document.getElementById("model-select").value;
     fetch(window.location.href, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
         },
-        body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix, model: model})
+        body: JSON.stringify({
+            nodes: nodesHorizontal,
+            matrix: matrix,
+            model: selectedModel
+        })
     })
-
         .then((response) => response.json())
         .then((data) => {
 
@@ -120,10 +124,10 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
 
             const probability = data.probability;
 
-             if (probability === -1) {
+            if (probability === -1) {
                 resultElement.textContent = "Кластер мертвий";
                 resultElement.className = "grey";
-            }  else {
+            } else {
                 resultElement.textContent = `Ймовірність: ${probability}%`;
                 resultElement.className = probability < 50 ? "green" : "red";
             }

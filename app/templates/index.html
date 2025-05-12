@@ -43,16 +43,13 @@
         <button id="generate-matrix">Створити матрицю</button>
     </div>
 
-    <div id="matrix-container"></div>
+    <select id="model-choice">
+        <option value="cb">CatBoost</option>
+        <option value="rf">Random Forest</option>
+        <option value="gb">Gradient Boosting</option>
+    </select>
 
-    <div class="model-selection">
-        <label for="model-select">Оберіть модель:</label>
-        <select id="model-select">
-            <option value="rf">Random Forest</option>
-            <option value="gb">Gradient Boosting</option>
-            <option value="cb" selected>CatBoost</option>
-        </select>
-    </div>
+    <div id="matrix-container"></div>
 
     <button id="submit-matrix" class="hidden">Відправити</button>
 
