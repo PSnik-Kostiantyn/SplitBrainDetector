@@ -1,5 +1,7 @@
 import os
 import pickle
+
+from sklearn.metrics import log_loss
 from tqdm import tqdm
 from catboost import CatBoostClassifier
 
@@ -62,8 +64,19 @@ def teach_cb(nodes, matrix):
     model = load_model()
     x_input = preprocess(nodes, matrix).reshape(1, -1)
     label = isSplitBrain(nodes, matrix)
-    print("Донавчання моделі...")
-    model.fit([x_input], [label])
+
+    other_label = 1 - label
+    dummy_input = np.zeros_like(x_input)
+
+    X = np.vstack([x_input, dummy_input])
+    y = [label, other_label]
+
+    model.fit(X, y)
+
+    proba = model.predict_proba(x_input)
+    current_loss = log_loss([label], proba, labels=[0, 1])
+
     with open("split_brain_model_cb.pkl", "wb") as f:
         pickle.dump(model, f)
-    return label
+
+    return current_loss * 1000000

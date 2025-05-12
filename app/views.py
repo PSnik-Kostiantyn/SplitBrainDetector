@@ -5,10 +5,11 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 
 from app.model.DataPreparation import isSplitBrain, isClusterDead
-from app.model.catBoost import predict_cb
-from app.model.gradientBoosting import predict_gb
+from app.model.catBoost import predict_cb, teach_cb
+from app.model.gradientBoosting import predict_gb, teach_gb
 from app.model.neuralModel import predict_neural_model, teach_neural_model
-from app.model.randomForest import predict_rf
+from app.model.randomForest import predict_rf, teach_rf
+
 
 def index(request):
     if request.method == "POST":
@@ -17,12 +18,7 @@ def index(request):
             print(request.body)
             nodes = data.get("nodes", [])
             matrix = data.get("matrix", [])
-            model = data.get("model", None)
-
-            if model is None:
-                print("Exception")
-
-            print("Model selected: ---- ", model)
+            model = data.get("model", "gb")
 
             if not matrix or not nodes:
                 return JsonResponse({"error": "Матриця або вузли не можуть бути порожніми."}, status=400)
@@ -93,25 +89,27 @@ def teach(request):
             nodes = data.get("nodes", [])
             matrix = data.get("matrix", [])
             split_brain = data.get("split_brain", 0)
-            print(nodes)
-            print(matrix)
-            print(split_brain)
+            model_name = data.get("model", "gb")
+
+            print("Nodes:", nodes)
+            print("Matrix:", matrix)
+            print("Split Brain Flag:", split_brain)
+            print("Model:", model_name)
 
             if isClusterDead(nodes, matrix):
                 return JsonResponse({"probability": -1})
 
-            if isSplitBrain(nodes, matrix):
-                if split_brain == 0:
-                    return JsonResponse({
-                        "probability": -2
-                    })
-            else:
-                if split_brain == 1:
-                    return JsonResponse({
-                        "probability": -2
-                    })
+            actual_split_brain = isSplitBrain(nodes, matrix)
+            if actual_split_brain != bool(split_brain):
+                return JsonResponse({"probability": -2})
 
-            probability = teach_neural_model(nodes, matrix)
+            if model_name == "rf":
+                probability = teach_rf(nodes, matrix)
+            elif model_name == "cb":
+                probability = teach_cb(nodes, matrix)
+            else:
+                probability = teach_gb(nodes, matrix)
+
             probability = round(probability, 7)
             return JsonResponse({"probability": probability})
 

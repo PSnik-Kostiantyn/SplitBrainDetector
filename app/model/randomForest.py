@@ -2,11 +2,11 @@ import os
 import pickle
 import time
 import numpy as np
+from sklearn.metrics import log_loss
 from tqdm import tqdm
 from sklearn.ensemble import RandomForestClassifier
 
 from app.model.DataPreparation import generate_cluster, preprocess, isClusterDead, isSplitBrain, isSingleType
-
 
 def train_model():
     print("Start learning")
@@ -74,7 +74,20 @@ def teach_rf(nodes, matrix):
     model = load_model()
     x_input = preprocess(nodes, matrix).reshape(1, -1)
     label = isSplitBrain(nodes, matrix)
-    model.fit(x_input, [label])
+
+    other_label = 1 - label
+    dummy_input = np.zeros_like(x_input)
+
+    X = np.vstack([x_input, dummy_input])
+    y = [label, other_label]
+
+    model.fit(X, y)
+
+    proba = model.predict_proba(x_input)
+    current_loss = log_loss([label], proba, labels=[0, 1])
+
     with open("split_brain_model_rf.pkl", "wb") as f:
         pickle.dump(model, f)
-    return label
+
+    return current_loss * 1000000
+

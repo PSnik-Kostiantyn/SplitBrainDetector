@@ -26,6 +26,13 @@
     <label>
         <input type="checkbox" id="confirmation-checkbox"> Я уважно прочитав(ла)
     </label>
+
+    <select id="model-choice">
+        <option value="cb">CatBoost</option>
+        <option value="rf">Random Forest</option>
+        <option value="gb">Gradient Boosting</option>
+    </select>
+
     <button id="generate-button" class="gray" disabled>Згенерувати матрицю</button>
     <div id="matrix-section" class="hidden">
         <h3>Згенерована матриця доступності</h3>

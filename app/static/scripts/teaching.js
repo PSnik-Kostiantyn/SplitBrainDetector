@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     generateButton.addEventListener("click", function () {
-        const size = Math.floor(Math.random() * 4) + 2;
+        const size = Math.floor(Math.random() * 4) + 4;
         currentNodes = generateNodes(size);
         currentMatrix = generateMatrix(size);
         renderMatrix(currentNodes, currentMatrix);
@@ -34,11 +34,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function sendToBackend(isSplitBrain) {
         const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
+        const selectedModel = document.getElementById("model-choice").value;
 
         const payload = {
             nodes: currentNodes,
             matrix: currentMatrix,
             split_brain: isSplitBrain ? 1 : 0,
+            model:selectedModel
         };
 
         fetch(window.location.href, {
