@@ -15,8 +15,10 @@ def index(request):
             data = json.loads(request.body)
             nodes = data.get("nodes", [])
             matrix = data.get("matrix", [])
-            print(nodes)
-            print(matrix)
+            model = data.get("model", "cb")
+
+            print("Model selected: ---- ", model)
+
             if not matrix or not nodes:
                 return JsonResponse({"error": "Матриця або вузли не можуть бути порожніми."}, status=400)
 
@@ -24,12 +26,18 @@ def index(request):
                 return JsonResponse({"probability": -1})
 
             if isSplitBrain(nodes, matrix):
-                print("100%")
                 return JsonResponse({"probability": 100})
 
-            probability = predict_cb(nodes, matrix)
+            if model == "rf":
+                probability = predict_rf(nodes, matrix)
+            elif model == "gb":
+                probability = predict_gb(nodes, matrix)
+            else:
+                probability = predict_cb(nodes, matrix)
+
             probability = round(probability * 100, 2)
             return JsonResponse({"probability": probability})
+
         except json.JSONDecodeError:
             return JsonResponse({"error": "Невірний формат JSON."}, status=400)
 

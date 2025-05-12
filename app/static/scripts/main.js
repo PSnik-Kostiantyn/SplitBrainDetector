@@ -1,7 +1,7 @@
 document.getElementById("generate-matrix").addEventListener("click", () => {
     const size = parseInt(document.getElementById("matrix-size-input").value);
-    if (size < 2 || size > 9 || isNaN(size)) {
-        alert("Введіть розмір від 2 до 9");
+    if (size < 4 || size > 9 || isNaN(size)) {
+        alert("Введіть розмір від 4 до 9");
         return;
     }
 
@@ -97,14 +97,16 @@ document.getElementById("submit-matrix").addEventListener("click", () => {
     console.log("Nodes:", nodesHorizontal);
     console.log("Matrix:", matrix);
 
+    const model = document.getElementById("model-select").value;
     fetch(window.location.href, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
         },
-        body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix})
+        body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix, model: model})
     })
+
         .then((response) => response.json())
         .then((data) => {
 
