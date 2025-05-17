@@ -42,7 +42,6 @@ def train_model():
 
     return model
 
-
 def load_model():
     model_path = "split_brain_model_cb.pkl"
     if os.path.exists(model_path):
