@@ -78,4 +78,4 @@ def teach_cb(nodes, matrix):
     with open("split_brain_model_cb.pkl", "wb") as f:
         pickle.dump(model, f)
 
-    return current_loss * 1000000
+    return current_loss * 1000
