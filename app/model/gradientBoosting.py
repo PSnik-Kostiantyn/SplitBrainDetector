@@ -18,7 +18,6 @@ def train_model():
         random_state=42
     )
 
-    #learning_rate=0.1, max_depth=5
     X_train, y_train = [], []
 
     for _ in tqdm(range(900000), desc="Generating normal data"):
