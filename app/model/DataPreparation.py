@@ -73,5 +73,3 @@ def isSingleType(nodes):
     for node in nodes:
         type_counts[node[0]] = type_counts.get(node[0], 0) + 1
     return any(count < 2 for count in type_counts.values())
-
-# TODO single type implement, split brain correct, sensitivity boost, autotests for accuracy
