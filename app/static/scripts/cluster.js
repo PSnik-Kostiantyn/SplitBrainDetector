@@ -112,7 +112,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!currentNodeName) {
                 currentNodeName = clickedNode.name;
             } else {
-                edges = edges.filter(edge => 
+                if (currentNodeName === clickedNode.name) {
+                    currentNodeName = '';
+                    return;
+                }
+                edges = edges.filter(edge =>
                     !(edge.from === currentNodeName && edge.to === clickedNode.name) &&
                     !(edge.from === clickedNode.name && edge.to === currentNodeName)
                 );
