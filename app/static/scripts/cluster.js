@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', function () {
     let selectedNode = null;
     let isDragging = false;
 
+    canvas.width = 600;
+    canvas.height = 400;
+
+    ctx.font = '14px Inter, sans-serif';
+
     document.getElementById('create-node').addEventListener('click', function () {
         const nodeName = document.getElementById('node-name').value;
         if (validateNodeName(nodeName)) {
@@ -46,54 +51,60 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-function drawGraph() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function drawGraph() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    edges.forEach(edge => {
-        const fromNode = nodes.find(n => n.name === edge.from);
-        const toNode = nodes.find(n => n.name === edge.to);
-        if (fromNode && toNode) {
-            ctx.beginPath();
-            ctx.moveTo(fromNode.x, fromNode.y);
-            ctx.lineTo(toNode.x, toNode.y);
-            ctx.strokeStyle = edge.type === 'two-way' ? '#00f' : '#f00';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+        edges.forEach(edge => {
+            const fromNode = nodes.find(n => n.name === edge.from);
+            const toNode = nodes.find(n => n.name === edge.to);
+            if (fromNode && toNode) {
+                ctx.beginPath();
+                ctx.moveTo(fromNode.x, fromNode.y);
+                ctx.lineTo(toNode.x, toNode.y);
+                ctx.strokeStyle = edge.type === 'two-way' ? '#00f' : '#f00';
+                ctx.lineWidth = 2;
+                ctx.stroke();
 
-            if (edge.type === 'one-way') {
-                drawArrowhead(fromNode.x, fromNode.y, toNode.x, toNode.y, ctx.strokeStyle);
+                if (edge.type === 'one-way') {
+                    drawArrowhead(fromNode.x, fromNode.y, toNode.x, toNode.y, ctx.strokeStyle);
+                } else if (edge.type === 'two-way') {
+                    drawArrowhead(fromNode.x, fromNode.y, toNode.x, toNode.y, ctx.strokeStyle);
+                    drawArrowhead(toNode.x, toNode.y, fromNode.x, fromNode.y, ctx.strokeStyle);
+                }
             }
-        }
-    });
+        });
 
-    nodes.forEach(node => {
+        nodes.forEach(node => {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
+            ctx.fillStyle = getNodeColor(node.name);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(node.name, node.x, node.y);
+        });
+    }
+
+    function drawArrowhead(x1, y1, x2, y2, color) {
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        const arrowSize = 10;
+        const offset = 20;
+        const arrowX = x2 - offset * Math.cos(angle);
+        const arrowY = y2 - offset * Math.sin(angle);
+
+        ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
-        ctx.fillStyle = getNodeColor(node.name);
+        ctx.moveTo(arrowX, arrowY);
+        ctx.lineTo(arrowX - arrowSize * Math.cos(angle - Math.PI / 6), arrowY - arrowSize * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(arrowX - arrowSize * Math.cos(angle + Math.PI / 6), arrowY - arrowSize * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
         ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = '#fff';
-        ctx.fillText(node.name, node.x - 10, node.y + 5);
-    });
-}
-
-function drawArrowhead(x1, y1, x2, y2, color) {
-    const angle = Math.atan2(y2 - y1, x2 - x1);
-    const arrowSize = 10;
-    const offset = 20;
-    const arrowX = x2 - offset * Math.cos(angle);
-    const arrowY = y2 - offset * Math.sin(angle);
-
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(arrowX, arrowY);
-    ctx.lineTo(arrowX - arrowSize * Math.cos(angle - Math.PI / 6), arrowY - arrowSize * Math.sin(angle - Math.PI / 6));
-    ctx.lineTo(arrowX - arrowSize * Math.cos(angle + Math.PI / 6), arrowY - arrowSize * Math.sin(angle + Math.PI / 6));
-    ctx.closePath();
-    ctx.fill();
-}
-
-
+    }
 
     function addEdge(event) {
         const clickedNode = nodes.find(node => Math.hypot(node.x - event.offsetX, node.y - event.offsetY) < 20);
@@ -101,6 +112,10 @@ function drawArrowhead(x1, y1, x2, y2, color) {
             if (!currentNodeName) {
                 currentNodeName = clickedNode.name;
             } else {
+                edges = edges.filter(edge => 
+                    !(edge.from === currentNodeName && edge.to === clickedNode.name) &&
+                    !(edge.from === clickedNode.name && edge.to === currentNodeName)
+                );
                 const newEdge = {from: currentNodeName, to: clickedNode.name, type: currentEdgeType};
                 edges.push(newEdge);
                 currentNodeName = '';
@@ -188,7 +203,6 @@ function drawArrowhead(x1, y1, x2, y2, color) {
         }
     }
 
-
     canvas.addEventListener('mousedown', function (event) {
         const clickedNode = nodes.find(node => Math.hypot(node.x - event.offsetX, node.y - event.offsetY) < 20);
         if (clickedNode) {
@@ -255,7 +269,6 @@ function drawArrowhead(x1, y1, x2, y2, color) {
                 const resultElement = document.getElementById("result");
                 resultElement.innerHTML = "";
                 resultElement.classList.remove("hidden");
-                console.log("Kl")
                 if (data.probability_neural === -1) {
                     resultElement.innerHTML = "<p class='grey'>Кластер мертвий</p>";
                 } else if (data.probability_neural === 100) {
@@ -267,11 +280,9 @@ function drawArrowhead(x1, y1, x2, y2, color) {
                           <p><strong>Ймовірність CatBoost:</strong> ${data.probability_cb}%</p>
                 `;
                 }
-
             })
             .catch((error) => console.error("Помилка при відправці:", error));
     });
-
 
     function getNodeColor(name) {
         const letter = name.charAt(0).toUpperCase();
@@ -311,4 +322,6 @@ function drawArrowhead(x1, y1, x2, y2, color) {
     function validateNodeName(name) {
         return /^[A-Z][1-9]$/.test(name);
     }
+
+    drawGraph();
 });
