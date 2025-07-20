@@ -1,6 +1,7 @@
 import random
 import numpy as np
 
+
 def generate_cluster():
     num_nodes = random.randint(4, 15)
     nodes = [random.choice(["A", "B", "C"]) for _ in range(num_nodes)]
@@ -9,11 +10,13 @@ def generate_cluster():
     # matrix = np.minimum(matrix, matrix.T)
     return nodes, matrix
 
+
 def pad_cluster(nodes, matrix, max_nodes=20):
     padded_nodes = nodes + [-1] * (max_nodes - len(nodes))
     padded_matrix = np.full((max_nodes, max_nodes), -1)
     padded_matrix[:len(matrix), :len(matrix)] = matrix
     return padded_nodes, padded_matrix
+
 
 def preprocess(nodes, matrix):
     max_nodes = 15
@@ -25,12 +28,14 @@ def preprocess(nodes, matrix):
     # print(np.array(x_nodes + x_matrix.tolist()))
     return np.array(x_nodes + x_matrix.tolist())
 
+
 def dfs(node, graph, visited, component):
     visited[node] = True
     component.append(node)
     for neighbor, connected in enumerate(graph[node]):
         if connected and graph[neighbor][node] and not visited[neighbor]:
             dfs(neighbor, graph, visited, component)
+
 
 def find_islands(matrix):
     n = len(matrix)
@@ -43,6 +48,7 @@ def find_islands(matrix):
             islands.append(component)
     return islands
 
+
 def isClusterDead(nodes, matrix):
     if all(all(cell == 0 for cell in row) for row in matrix):
         return True
@@ -53,6 +59,7 @@ def isClusterDead(nodes, matrix):
         if required_types.issubset(types_in_island):
             return False
     return True
+
 
 def isSplitBrain(nodes, matrix):
     if isSingleType(nodes):
@@ -67,6 +74,7 @@ def isSplitBrain(nodes, matrix):
             if functional_islands >= 2:
                 return True
     return False
+
 
 def isSingleType(nodes):
     type_counts = {}

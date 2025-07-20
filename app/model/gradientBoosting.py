@@ -41,6 +41,7 @@ def train_model():
         pickle.dump(model, f)
     return model
 
+
 def load_model():
     model_path = "split_brain_model_gb.pkl"
     if os.path.exists(model_path):
@@ -49,6 +50,7 @@ def load_model():
     else:
         return train_model()
 
+
 def predict_gb(nodes, matrix):
     print("GB __________________")
     if isSingleType(nodes):
@@ -56,6 +58,7 @@ def predict_gb(nodes, matrix):
     model = load_model()
     x_input = preprocess(nodes, matrix).reshape(1, -1)
     return model.predict_proba(x_input)[0, 1]
+
 
 def teach_gb(nodes, matrix):
     model = load_model()

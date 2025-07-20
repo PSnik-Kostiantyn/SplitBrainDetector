@@ -7,6 +7,7 @@ from catboost import CatBoostClassifier
 
 from app.model.DataPreparation import *
 
+
 def train_model():
     model = CatBoostClassifier(
         iterations=1000,
@@ -18,14 +19,14 @@ def train_model():
     )
     X_train, y_train = [], []
 
-    for _ in tqdm(range(900000) ,desc="Generating normal data"):
+    for _ in tqdm(range(900000), desc="Generating normal data"):
         nodes, matrix = generate_cluster()
         while isClusterDead(nodes, matrix):
             nodes, matrix = generate_cluster()
         X_train.append(preprocess(nodes, matrix))
         y_train.append(isSplitBrain(nodes, matrix))
 
-    for _ in tqdm(range(500000),desc="Generating additional split-brain cases"):
+    for _ in tqdm(range(500000), desc="Generating additional split-brain cases"):
         nodes, matrix = generate_cluster()
         while not isSplitBrain(nodes, matrix):
             nodes, matrix = generate_cluster()
@@ -42,6 +43,7 @@ def train_model():
 
     return model
 
+
 def load_model():
     model_path = "split_brain_model_cb.pkl"
     if os.path.exists(model_path):
@@ -49,6 +51,7 @@ def load_model():
             return pickle.load(f)
     else:
         return train_model()
+
 
 def predict_cb(nodes, matrix):
     print("CB __________________")

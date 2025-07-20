@@ -8,6 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from app.model.DataPreparation import generate_cluster, preprocess, isClusterDead, isSplitBrain, isSingleType
 
+
 def train_model():
     print("Start learning")
     start_time = time.time()
@@ -90,4 +91,3 @@ def teach_rf(nodes, matrix):
         pickle.dump(model, f)
 
     return current_loss * 1000000
-
