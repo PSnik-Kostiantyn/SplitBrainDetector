@@ -1,119 +1,136 @@
-import torch.nn as nn
-import torch.optim as optim
 import os
-import torch
+import pickle
 
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Input, Dense, Dropout, BatchNormalization
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping
+from sklearn.metrics import log_loss
+from sklearn.preprocessing import StandardScaler
+from tqdm import tqdm
 from app.model.DataPreparation import *
 
 
-class SplitBrainModel(nn.Module):
-    def __init__(self):
-        super(SplitBrainModel, self).__init__()
-        self.fc1 = nn.Linear(9 * 9 + 9, 128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 1)
-
-    def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        x = torch.sigmoid(self.fc3(x))
-        return x
-
-
-def train_model():
-    model = SplitBrainModel()
-    criterion = nn.BCELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    for epoch in range(2):
-        for _ in range(100000):
-            nodes, matrix = generate_cluster()
-            while isClusterDead(nodes, matrix):
-                nodes, matrix = generate_cluster()
-            padded_nodes, padded_matrix = pad_cluster(nodes, matrix)
-            x_nodes = [2 if n == "A" else 3 if n == "B" else 4 for n in padded_nodes]
-            x_matrix = padded_matrix.flatten()
-            x_input = torch.tensor(x_nodes + x_matrix.tolist(), dtype=torch.float32)
-            x_input = x_input / 3.0
-            label = isSplitBrain(nodes, matrix)
-            y_target = torch.tensor([label], dtype=torch.float32)
-            optimizer.zero_grad()
-            output = model(x_input)
-            loss = criterion(output, y_target)
-            loss.backward()
-            optimizer.step()
-        print(f"Epoch {epoch + 1}, Loss: {loss.item()}")
+def build_neural_network(input_dim):
+    model = Sequential([
+        Input(shape=(input_dim,)),
+        Dense(256, activation='relu'),
+        BatchNormalization(),
+        Dropout(0.3),
+        Dense(128, activation='relu'),
+        BatchNormalization(),
+        Dropout(0.3),
+        Dense(64, activation='relu'),
+        BatchNormalization(),
+        Dropout(0.2),
+        Dense(32, activation='relu'),
+        Dense(1, activation='sigmoid')
+    ])
+    model.compile(optimizer=Adam(learning_rate=0.0005),
+                  loss='binary_crossentropy',
+                  metrics=['accuracy'])
     return model
 
 
-def save_model(model, filename="split_brain_model_revo2.pth"):
-    torch.save(model.state_dict(), filename)
+def train_model():
+    max_nodes = 15
+    input_dim = max_nodes + (max_nodes * max_nodes)
+    model = build_neural_network(input_dim)
+
+    scaler = StandardScaler()
+
+    X_train, y_train = [], []
+
+    for _ in tqdm(range(500000), desc="Generating normal data"):
+        nodes, matrix = generate_cluster()
+        while isClusterDead(nodes, matrix):
+            nodes, matrix = generate_cluster()
+        X_train.append(preprocess(nodes, matrix))
+        y_train.append(isSplitBrain(nodes, matrix))
+
+    for _ in tqdm(range(300000), desc="Generating additional split-brain cases"):
+        nodes, matrix = generate_cluster()
+        while not isSplitBrain(nodes, matrix):
+            nodes, matrix = generate_cluster()
+        sample = preprocess(nodes, matrix)
+        for _ in range(2):
+            X_train.append(sample)
+            y_train.append(1)
+
+    X_train = np.array(X_train)
+    y_train = np.array(y_train)
+
+    X_train = scaler.fit_transform(X_train)
+
+    print("Training neural network...")
+    early_stopping = EarlyStopping(monitor='loss', patience=3, restore_best_weights=True)
+    model.fit(X_train, y_train, epochs=20, batch_size=64, verbose=1, callbacks=[early_stopping])
+
+    model.save("split_brain_model_nn.keras")
+
+    import pickle
+    with open("scaler.pkl", "wb") as f:
+        pickle.dump(scaler, f)
+
+    return model
 
 
-def predict_neural_model(nodes, matrix):
-    model_path = 'split_brain_model_revo2.pth'
-    print("NM __________________")
-
-    def preprocess(nodes, matrix):
-        max_nodes = 9
-        padded_nodes, padded_matrix = pad_cluster(nodes, matrix, max_nodes)
-        x_nodes = [ord(n[0]) - ord("A") + 2 if isinstance(n, str) and len(n) == 1 else -1 for n in padded_nodes]
-        x_matrix = padded_matrix.flatten()
-        x_input = torch.tensor(x_nodes + x_matrix.tolist(), dtype=torch.float32)
-        return x_input / 3.0
-
-    def load_model():
-        model = SplitBrainModel()
-        if os.path.exists(model_path):
-            model.load_state_dict(torch.load(model_path))
-            model.eval()
-        else:
-            print("Модель не знайдена. Починається тренування...    ")
-            model = train_model()
-            save_model(model, model_path)
+def load_nn_model():
+    model_path = "split_brain_model_nn.keras"
+    if os.path.exists(model_path):
+        model = tf.keras.models.load_model(model_path)
+        model.compile(optimizer=Adam(learning_rate=0.0005),
+                      loss='binary_crossentropy',
+                      metrics=['accuracy'])
         return model
-
-    return 0
-    # x_input = preprocess(nodes, matrix)
-    # #  print(x_input)
-    # model = load_model()
-    # with torch.no_grad():
-    #     prediction = model(x_input).item()
-    #     return prediction
+    else:
+        return train_model()
 
 
-def teach_neural_model(nodes, matrix):
-    model_path = "split_brain_model_good_2.pth"
+def predict_nn(nodes, matrix):
+    print("NN __________________")
+    if isSingleType(nodes):
+        return 0
+    model = load_nn_model()
 
-    def preprocess(nodes, matrix):
-        max_nodes = 9
-        padded_nodes, padded_matrix = pad_cluster(nodes, matrix, max_nodes)
-        x_nodes = [2 if n == "A" else 3 if n == "B" else 4 for n in padded_nodes]
-        x_matrix = padded_matrix.flatten()
-        x_input = torch.tensor(x_nodes + x_matrix.tolist(), dtype=torch.float32)
-        return x_input / 3.0
+    scaler_path = "scaler.pkl"
+    if os.path.exists(scaler_path):
+        with open(scaler_path, "rb") as f:
+            scaler = pickle.load(f)
+    else:
+        scaler = StandardScaler()
 
-    def load_model():
-        model = SplitBrainModel()
-        if os.path.exists(model_path):
-            model.load_state_dict(torch.load(model_path))
-            print("Модель успішно завантажена.")
-        else:
-            print("Модель не знайдена. Створення нової моделі...")
-        return model
+    x_input = preprocess(nodes, matrix).reshape(1, -1)
+    x_input = scaler.transform(x_input)
+    return model.predict(x_input, verbose=0)[0, 0]
 
-    model = load_model()
-    model.train()
-    x_input = preprocess(nodes, matrix)
-    x_input = x_input.unsqueeze(0)
+
+def teach_nn(nodes, matrix):
+    model = load_nn_model()
+
+    # Завантаження scaler
+    scaler_path = "scaler.pkl"
+    if os.path.exists(scaler_path):
+        with open(scaler_path, "rb") as f:
+            scaler = pickle.load(f)
+    else:
+        scaler = StandardScaler()
+
+    x_input = preprocess(nodes, matrix).reshape(1, -1)
+    x_input = scaler.transform(x_input)
     label = isSplitBrain(nodes, matrix)
-    y_target = torch.tensor([[label]], dtype=torch.float32)
-    criterion = nn.BCELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    optimizer.zero_grad()
-    output = model(x_input)
-    loss = criterion(output, y_target)
-    loss.backward()
-    optimizer.step()
-    torch.save(model.state_dict(), model_path)
-    print(f"Модель успішно оновлена та збережена. Втрата: {loss.item():.6f}")
-    return loss.item()
+
+    other_label = 1 - label
+    dummy_input = np.zeros_like(x_input)
+
+    X = np.vstack([x_input, dummy_input])
+    y = np.array([label, other_label])
+
+    model.fit(X, y, epochs=1, batch_size=2, verbose=0)
+
+    proba = model.predict(x_input, verbose=0)
+    current_loss = log_loss([label], proba, labels=[0, 1])
+
+    model.save("split_brain_model_nn.keras")
+    return current_loss
