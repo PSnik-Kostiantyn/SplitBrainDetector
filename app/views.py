@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from app.model.DataPreparation import isSplitBrain, isClusterDead
 from app.model.catBoost import predict_cb, teach_cb
 from app.model.gradientBoosting import predict_gb, teach_gb
-from app.model.neuralModel import predict_neural_model, teach_neural_model
+from app.model.neuralModel import predict_nn
 from app.model.randomForest import predict_rf, teach_rf
 
 
@@ -62,11 +62,10 @@ def cluster(request):
             if isSplitBrain(nodes, matrix):
                 return JsonResponse({"probability_neural": 100})
 
-            probability_neural = predict_neural_model(nodes, matrix)
+            probability_neural = predict_nn(nodes, matrix)
             probability_rf = predict_rf(nodes, matrix)
             probability_gb = predict_gb(nodes, matrix)
             probability_cb = predict_cb(nodes, matrix)
-            # TODO delete neural
             probability_neural = round(probability_neural * 100, 2)
             probability_rf = round(probability_rf * 100, 2)
             probability_gb = round(probability_gb * 100, 2)

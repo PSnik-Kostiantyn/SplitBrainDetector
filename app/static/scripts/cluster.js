@@ -230,63 +230,64 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.getElementById('submit-matrix').addEventListener('click', function () {
-        const nodesHorizontal = nodes.map(node => node.name);
+    const nodesHorizontal = nodes.map(node => node.name);
 
-        if (nodesHorizontal.length === 0) {
-            alert("Матриця порожня, додайте вузли та ребра.");
-            return;
-        }
+    if (nodesHorizontal.length === 0) {
+        alert("Матриця порожня, додайте вузли та ребра.");
+        return;
+    }
 
-        const size = nodes.length;
-        const matrix = Array.from({length: size}, () => Array(size).fill(0));
+    const size = nodes.length;
+    const matrix = Array.from({length: size}, () => Array(size).fill(0));
 
-        edges.forEach(edge => {
-            const fromIndex = nodes.findIndex(node => node.name === edge.from);
-            const toIndex = nodes.findIndex(node => node.name === edge.to);
-            if (fromIndex >= 0 && toIndex >= 0) {
-                matrix[fromIndex][toIndex] = 1;
-                if (edge.type === 'two-way') {
-                    matrix[toIndex][fromIndex] = 1;
-                }
+    edges.forEach(edge => {
+        const fromIndex = nodes.findIndex(node => node.name === edge.from);
+        const toIndex = nodes.findIndex(node => node.name === edge.to);
+        if (fromIndex >= 0 && toIndex >= 0) {
+            matrix[fromIndex][toIndex] = 1;
+            if (edge.type === 'two-way') {
+                matrix[toIndex][fromIndex] = 1;
             }
-        });
-
-        for (let i = 0; i < size; i++) {
-            matrix[i][i] = 0;
         }
-
-        console.log("Nodes:", nodesHorizontal);
-        console.log("Matrix:", matrix);
-
-        fetch(window.location.href, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
-            },
-            body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix})
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                console.log("Отримані дані від сервера:", data);
-
-                const resultElement = document.getElementById("result");
-                resultElement.innerHTML = "";
-                resultElement.classList.remove("hidden");
-                if (data.probability_neural === -1) {
-                    resultElement.innerHTML = "<p class='grey'>Кластер мертвий</p>";
-                } else if (data.probability_neural === 100) {
-                    resultElement.innerHTML = "<p class='red'>Ситуація Split brain</p>";
-                } else {
-                    resultElement.innerHTML = `
-                          <p><strong>Ймовірність Random Forest:</strong> ${data.probability_rf}%</p>
-                          <p><strong>Ймовірність Gradient Boosting:</strong> ${data.probability_gb}%</p>
-                          <p><strong>Ймовірність CatBoost:</strong> ${data.probability_cb}%</p>
-                `;
-                }
-            })
-            .catch((error) => console.error("Помилка при відправці:", error));
     });
+
+    for (let i = 0; i < size; i++) {
+        matrix[i][i] = 0;
+    }
+
+    console.log("Nodes:", nodesHorizontal);
+    console.log("Matrix:", matrix);
+
+    fetch(window.location.href, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
+        },
+        body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix})
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log("Отримані дані від сервера:", data);
+
+            const resultElement = document.getElementById("result");
+            resultElement.innerHTML = "";
+            resultElement.classList.remove("hidden");
+            if (data.probability_neural === -1) {
+                resultElement.innerHTML = "<p class='grey'>Кластер мертвий</p>";
+            } else if (data.probability_neural === 100) {
+                resultElement.innerHTML = "<p class='red'>Ситуація Split brain</p>";
+            } else {
+                resultElement.innerHTML = `
+                    <p><strong>Ймовірність Neural Network:</strong> ${data.probability_neural}%</p>
+                    <p><strong>Ймовірність Random Forest:</strong> ${data.probability_rf}%</p>
+                    <p><strong>Ймовірність Gradient Boosting:</strong> ${data.probability_gb}%</p>
+                    <p><strong>Ймовірність CatBoost:</strong> ${data.probability_cb}%</p>
+                `;
+            }
+        })
+        .catch((error) => console.error("Помилка при відправці:", error));
+});
 
     function getNodeColor(name) {
         const letter = name.charAt(0).toUpperCase();
