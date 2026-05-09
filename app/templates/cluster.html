@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Split Brain Problem Detector</title>
     <link rel="stylesheet" href="../static/css/cluster.css">
+    <link rel="stylesheet" href="../static/css/animations.css">
 </head>
 <body>
-
 <header>
-    <h1>Split Brain Problem Detector</h1>
+    <div class="logo-wrap">
+        <div class="logo-badge">SB</div>
+        <h1>Split Brain Problem Detector</h1>
+    </div>
     <div class="menu">
         <a href="/" class="button">Головна сторінка</a>
         <a href="/teach" class="button">Навчання моделі</a>
@@ -45,6 +48,7 @@
 </section>
 
 <script src="../static/scripts/cluster.js"></script>
+<script src="../static/scripts/toast.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 

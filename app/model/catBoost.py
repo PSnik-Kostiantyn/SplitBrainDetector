@@ -214,7 +214,7 @@ def teach_cb(nodes, matrix) -> float:
 
     with open(BUFFER_PATH, "wb") as f:
         pickle.dump(buffer, f)
-    return current_loss * 1_000_000
+    return current_loss
 
 
 def benchmark_cb(n_samples: int = 10_000):

@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Split Brain Problem Detector</title>
     <link rel="stylesheet" href="../static/css/main.css">
+    <link rel="stylesheet" href="../static/css/animations.css">
 </head>
 <body>
 <header>
-    <h1>Split Brain Problem Detector</h1>
+    <div class="logo-wrap">
+        <div class="logo-badge">SB</div>
+        <h1>Split Brain Problem Detector</h1>
+    </div>
     <div class="menu">
         <a href="/cluster" class="button">Графічне задання</a>
         <a href="/teach" class="button">Навчання моделі</a>
@@ -57,6 +61,7 @@
 </section>
 
 <script src="../static/scripts/main.js"></script>
+<script src="../static/scripts/toast.js"></script>
 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
 </body>

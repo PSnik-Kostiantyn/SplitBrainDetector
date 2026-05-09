@@ -279,7 +279,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 resultElement.innerHTML = "<p class='red'>Ситуація Split brain</p>";
             } else {
                 resultElement.innerHTML = `
-                    <p><strong>Ймовірність Neural Network:</strong> ${data.probability_neural}%</p>
                     <p><strong>Ймовірність Random Forest:</strong> ${data.probability_rf}%</p>
                     <p><strong>Ймовірність Gradient Boosting:</strong> ${data.probability_gb}%</p>
                     <p><strong>Ймовірність CatBoost:</strong> ${data.probability_cb}%</p>

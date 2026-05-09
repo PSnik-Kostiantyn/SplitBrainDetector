@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Split Brain Problem Detector</title>
     <link rel="stylesheet" href="../static/css/teaching.css">
+    <link rel="stylesheet" href="../static/css/animations.css">
 </head>
 <body>
-
 <header>
-    <h1>Split Brain Problem Learning</h1>
+    <div class="logo-wrap">
+        <div class="logo-badge">SB</div>
+        <h1>Split Brain Problem Learning</h1>
+    </div>
     <div class="menu">
         <a href="/" class="button">Головна сторінка</a>
         <a href="/cluster" class="button">Графічне задання</a>
@@ -23,6 +26,7 @@
         Щоб навчити модель, вам необхідно згенерувати матрицю кластеру та вказати,
         чи виникла ситуація split brain. Всі типи вузлів є обов'язковими для роботи системи.
     </p>
+
     <label>
         <input type="checkbox" id="confirmation-checkbox"> Я уважно прочитав(ла)
     </label>
@@ -34,6 +38,7 @@
     </select>
 
     <button id="generate-button" class="gray" disabled>Згенерувати матрицю</button>
+
     <div id="matrix-section" class="hidden">
         <h3>Згенерована матриця доступності</h3>
         <div id="matrix-container"></div>
@@ -49,5 +54,6 @@
 
 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 <script src="../static/scripts/teaching.js"></script>
+<script src="../static/scripts/toast.js"></script>
 </body>
 </html>

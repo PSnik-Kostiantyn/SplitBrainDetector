@@ -181,7 +181,7 @@ def teach_gb(nodes, matrix) -> float:
 
     with open(BUFFER_PATH, "wb") as f:
         pickle.dump(buffer, f)
-    return current_loss * 1_000_000
+    return current_loss * 1
 
 
 def benchmark_gb(n_samples: int = 10_000):

@@ -56,11 +56,10 @@ def generate_dataset_natural(n_samples: int):
 
 
 def train_model(
-    n_normal: int = 500_000,
-    n_splitbrain: int = 100_000,
-    eval_size: int = 20_000,
+        n_normal: int = 500_000,
+        n_splitbrain: int = 100_000,
+        eval_size: int = 20_000,
 ) -> RandomForestClassifier:
-
     global _cached_model
 
     print("[RF] Генерація тренувальних даних...")
@@ -122,6 +121,7 @@ def train_model(
     _cached_model = model
     return model
 
+
 def load_model() -> RandomForestClassifier:
     if Path(MODEL_PATH).exists():
         with open(MODEL_PATH, "rb") as f:
@@ -139,6 +139,7 @@ def predict_rf(nodes, matrix) -> float:
     elapsed_ms = (time.time() - t0) * 1000
     print(f"RF predict: {proba:.4f} ({elapsed_ms:.2f} ms)")
     return float(proba)
+
 
 def teach_rf(nodes, matrix) -> float:
     BUFFER_SIZE = 500
@@ -185,7 +186,7 @@ def teach_rf(nodes, matrix) -> float:
 
     with open(BUFFER_PATH, "wb") as f:
         pickle.dump(buffer, f)
-    return current_loss * 1_000_000
+    return current_loss * 1
 
 
 def benchmark_rf(n_samples: int = 10_000):

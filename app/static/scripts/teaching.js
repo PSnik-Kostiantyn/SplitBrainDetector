@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const value = parseInt(this.value);
 
                 if (value === 0 || value === 1) {
-                    currentMatrix[row][col] = value; // Оновлення матриці
+                    currentMatrix[row][col] = value;
                     console.log(`Змінено значення: row=${row}, col=${col}, value=${value}`);
                 } else {
                     alert("Значення має бути 0 або 1!");
