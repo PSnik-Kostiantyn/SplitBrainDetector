@@ -13,11 +13,12 @@ from app.model.DataPreparation import (
 )
 from app.model.metrics import compute_metrics, save_metrics, print_metrics
 
-MODEL_PATH = "split_brain_model_gb.pkl"
+MODEL_PATH = "models/split_brain_model_gb.pkl"
 METRICS_PATH = "metrics_gb.json"
 BUFFER_PATH = "gb_teach_buffer.pkl"
 
 _cached_model = None
+
 
 def _get_model() -> GradientBoostingClassifier:
     global _cached_model
@@ -55,9 +56,9 @@ def generate_dataset_natural(n_samples: int):
 
 
 def train_model(
-    n_normal: int = 900_000,
-    n_splitbrain: int = 500_000,
-    eval_size: int = 20_000,
+        n_normal: int = 900_000,
+        n_splitbrain: int = 500_000,
+        eval_size: int = 20_000,
 ) -> GradientBoostingClassifier:
     global _cached_model
 

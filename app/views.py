@@ -8,38 +8,34 @@ from app.model.gradientBoosting import predict_gb, teach_gb
 from app.model.randomForest import predict_rf, teach_rf
 
 
+def _get_ensemble(key: str):
+    from ensemble import get_ensemble
+    return get_ensemble(key, calibrated=False)
+
+
 def index(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            print(request.body)
             nodes = data.get("nodes", [])
             matrix = data.get("matrix", [])
-            model = data.get("model", "gb")
+            model_key = data.get("model", "cb")
 
             if not matrix or not nodes:
-                return JsonResponse({"error": "Матриця або вузли не можуть бути порожніми."}, status=400)
-
+                return JsonResponse({"error": "Empty input."}, status=400)
             if isClusterDead(nodes, matrix):
                 return JsonResponse({"probability": -1})
-
             if isSplitBrain(nodes, matrix):
                 return JsonResponse({"probability": 100})
 
-            if model == "rf":
-                probability = predict_rf(nodes, matrix)
-            elif model == "gb":
-                probability = predict_gb(nodes, matrix)
-            else:
-                probability = predict_cb(nodes, matrix)
-
-            probability = round(probability * 100, 2)
-            return JsonResponse({"probability": probability})
+            p = (predict_rf(nodes, matrix) if model_key == "rf" else
+                 predict_gb(nodes, matrix) if model_key == "gb" else
+                 predict_cb(nodes, matrix))
+            return JsonResponse({"probability": round(p * 100, 2)})
 
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Невірний формат JSON."}, status=400)
-
-    return render(request, 'index.html')
+            return JsonResponse({"error": "Invalid JSON."}, status=400)
+    return render(request, "index.html")
 
 
 def cluster(request):
@@ -48,44 +44,36 @@ def cluster(request):
             data = json.loads(request.body)
             nodes = data.get("nodes", [])
             matrix = data.get("matrix", [])
-            print(nodes)
-            print(matrix)
+            mode = data.get("mode", "base")
 
             if not matrix or not nodes:
-                return JsonResponse({"error": "Матриця або вузли не можуть бути порожніми."}, status=400)
-
+                return JsonResponse({"error": "Empty input."}, status=400)
             if isClusterDead(nodes, matrix):
-                return JsonResponse({
-                    "probability_rf": -1,
-                    "probability_gb": -1,
-                    "probability_cb": -1,
-                })
-
+                return JsonResponse({"dead": True})
             if isSplitBrain(nodes, matrix):
+                return JsonResponse({"split_brain": True})
+
+            if mode == "ensemble":
                 return JsonResponse({
-                    "probability_rf": 100,
-                    "probability_gb": 100,
-                    "probability_cb": 100,
+                    "mode": "ensemble",
+                    "e1": round(_get_ensemble("e1").predict(nodes, matrix) * 100, 2),
+                    "e2": round(_get_ensemble("e2").predict(nodes, matrix) * 100, 2),
+                    "e3": round(_get_ensemble("e3").predict(nodes, matrix) * 100, 2),
                 })
-
-            probability_rf = round(predict_rf(nodes, matrix) * 100, 2)
-            probability_gb = round(predict_gb(nodes, matrix) * 100, 2)
-            probability_cb = round(predict_cb(nodes, matrix) * 100, 2)
-
             return JsonResponse({
-                "probability_rf": probability_rf,
-                "probability_gb": probability_gb,
-                "probability_cb": probability_cb,
+                "mode": "base",
+                "probability_rf": round(predict_rf(nodes, matrix) * 100, 2),
+                "probability_gb": round(predict_gb(nodes, matrix) * 100, 2),
+                "probability_cb": round(predict_cb(nodes, matrix) * 100, 2),
             })
 
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Невірний формат JSON."}, status=400)
-
-    return render(request, 'cluster.html')
+            return JsonResponse({"error": "Invalid JSON."}, status=400)
+    return render(request, "cluster.html")
 
 
 def info(request):
-    return render(request, 'info.html')
+    return render(request, "info.html")
 
 
 def teach(request):
@@ -97,29 +85,16 @@ def teach(request):
             split_brain = data.get("split_brain", 0)
             model_name = data.get("model", "gb")
 
-            print("Nodes:", nodes)
-            print("Matrix:", matrix)
-            print("Split Brain Flag:", split_brain)
-            print("Model:", model_name)
-
             if isClusterDead(nodes, matrix):
                 return JsonResponse({"probability": -1})
-
-            actual_split_brain = isSplitBrain(nodes, matrix)
-            if actual_split_brain != bool(split_brain):
+            if isSplitBrain(nodes, matrix) != bool(split_brain):
                 return JsonResponse({"probability": -2})
 
-            if model_name == "rf":
-                probability = teach_rf(nodes, matrix)
-            elif model_name == "cb":
-                probability = teach_cb(nodes, matrix)
-            else:
-                probability = teach_gb(nodes, matrix)
-
-            probability = round(probability, 7)
-            return JsonResponse({"probability": probability})
+            p = (teach_rf(nodes, matrix) if model_name == "rf" else
+                 teach_cb(nodes, matrix) if model_name == "cb" else
+                 teach_gb(nodes, matrix))
+            return JsonResponse({"probability": round(p, 7)})
 
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Невірний формат JSON."}, status=400)
-
-    return render(request, 'teaching.html')
+            return JsonResponse({"error": "Invalid JSON."}, status=400)
+    return render(request, "teaching.html")

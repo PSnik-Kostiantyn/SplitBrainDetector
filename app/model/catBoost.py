@@ -13,7 +13,7 @@ from app.model.DataPreparation import (
 )
 from app.model.metrics import compute_metrics, save_metrics, print_metrics
 
-MODEL_PATH = "split_brain_model_cb.pkl"
+MODEL_PATH = "models/split_brain_model_cb.pkl"
 METRICS_PATH = "metrics_cb.json"
 BUFFER_PATH = "cb_teach_buffer.pkl"
 
@@ -55,11 +55,10 @@ def generate_dataset_natural(n_samples: int):
     return np.array(X), np.array(y)
 
 
-
 def train_model(
-    n_normal: int = 900_000,
-    n_splitbrain: int = 300_000,
-    eval_size: int = 20_000,
+        n_normal: int = 900_000,
+        n_splitbrain: int = 300_000,
+        eval_size: int = 20_000,
 ) -> CatBoostClassifier:
     global _cached_model
 

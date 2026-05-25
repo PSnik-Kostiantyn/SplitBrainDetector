@@ -1,79 +1,81 @@
 document.addEventListener('DOMContentLoaded', function () {
     const canvas = document.getElementById('graph-canvas');
-    const ctx = canvas.getContext('2d');
-    let nodes = [];
-    let edges = [];
+    const ctx    = canvas.getContext('2d');
+    let nodes = [], edges = [];
     let currentNodeName = '';
-    let isErasing = false;
+    let isErasing       = false;
     let currentEdgeType = 'one-way';
-    let selectedNode = null;
-    let isDragging = false;
+    let selectedNode    = null;
+    let isDragging      = false;
 
-    canvas.width = 600;
+    canvas.width  = 600;
     canvas.height = 400;
-
     ctx.font = '14px Inter, sans-serif';
+
+    let currentMode = 'base';
+    const toggle    = document.getElementById('mode-toggle');
+    const modeLabel = document.getElementById('mode-label');
+
+    if (toggle) {
+        toggle.addEventListener('change', function () {
+            currentMode = this.checked ? 'ensemble' : 'base';
+            modeLabel.textContent = this.checked
+                ? 'Режим: Ансамблі (E1 · E2 · E3)'
+                : 'Режим: Базові (RF · GB · CB)';
+        });
+    }
 
     document.getElementById('create-node').addEventListener('click', function () {
         const nodeName = document.getElementById('node-name').value;
         if (validateNodeName(nodeName)) {
-            const existingNode = nodes.find(node => node.name === nodeName);
-            if (existingNode) {
+            if (nodes.find(n => n.name === nodeName)) {
                 alert('Ця назва ноди вже існує. Виберіть іншу назву.');
             } else {
-                nodes.push({name: nodeName, x: Math.random() * canvas.width, y: Math.random() * canvas.height});
+                nodes.push({
+                    name: nodeName,
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                });
                 drawGraph();
                 document.getElementById('node-name').value = '';
             }
         } else {
-            alert('Невірний формат назви ноди. Назва має починатися з букви A-Z, за якою йде цифра 1-9.');
+            alert('Невірний формат. Назва: велика літера A-Z + цифра 1-9.');
         }
     });
 
     document.getElementById('line-one-way').addEventListener('click', function () {
         currentEdgeType = 'one-way';
     });
-
     document.getElementById('line-two-way').addEventListener('click', function () {
         currentEdgeType = 'two-way';
     });
-
     document.getElementById('erase').addEventListener('click', function () {
         isErasing = !isErasing;
         this.style.backgroundColor = isErasing ? '#ff4444' : '';
     });
 
     canvas.addEventListener('click', function (event) {
-        if (isErasing) {
-            eraseNode(event);
-        } else {
-            addEdge(event);
-        }
+        if (isErasing) eraseNode(event);
+        else           addEdge(event);
     });
 
     function drawGraph() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
         edges.forEach(edge => {
-            const fromNode = nodes.find(n => n.name === edge.from);
-            const toNode = nodes.find(n => n.name === edge.to);
-            if (fromNode && toNode) {
-                ctx.beginPath();
-                ctx.moveTo(fromNode.x, fromNode.y);
-                ctx.lineTo(toNode.x, toNode.y);
-                ctx.strokeStyle = edge.type === 'two-way' ? '#00f' : '#f00';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                if (edge.type === 'one-way') {
-                    drawArrowhead(fromNode.x, fromNode.y, toNode.x, toNode.y, ctx.strokeStyle);
-                } else if (edge.type === 'two-way') {
-                    drawArrowhead(fromNode.x, fromNode.y, toNode.x, toNode.y, ctx.strokeStyle);
-                    drawArrowhead(toNode.x, toNode.y, fromNode.x, fromNode.y, ctx.strokeStyle);
-                }
-            }
+            const a = nodes.find(n => n.name === edge.from);
+            const b = nodes.find(n => n.name === edge.to);
+            if (!a || !b) return;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = edge.type === 'two-way' ? '#00f' : '#f00';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            drawArrowhead(a.x, a.y, b.x, b.y, ctx.strokeStyle);
+            if (edge.type === 'two-way')
+                drawArrowhead(b.x, b.y, a.x, a.y, ctx.strokeStyle);
         });
-
         nodes.forEach(node => {
             ctx.beginPath();
             ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
@@ -91,236 +93,191 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function drawArrowhead(x1, y1, x2, y2, color) {
-        const angle = Math.atan2(y2 - y1, x2 - x1);
-        const arrowSize = 10;
-        const offset = 20;
-        const arrowX = x2 - offset * Math.cos(angle);
-        const arrowY = y2 - offset * Math.sin(angle);
-
+        const angle   = Math.atan2(y2 - y1, x2 - x1);
+        const arrowSize = 10, offset = 20;
+        const ax = x2 - offset * Math.cos(angle);
+        const ay = y2 - offset * Math.sin(angle);
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.moveTo(arrowX, arrowY);
-        ctx.lineTo(arrowX - arrowSize * Math.cos(angle - Math.PI / 6), arrowY - arrowSize * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(arrowX - arrowSize * Math.cos(angle + Math.PI / 6), arrowY - arrowSize * Math.sin(angle + Math.PI / 6));
+        ctx.moveTo(ax, ay);
+        ctx.lineTo(ax - arrowSize * Math.cos(angle - Math.PI/6),
+                   ay - arrowSize * Math.sin(angle - Math.PI/6));
+        ctx.lineTo(ax - arrowSize * Math.cos(angle + Math.PI/6),
+                   ay - arrowSize * Math.sin(angle + Math.PI/6));
         ctx.closePath();
         ctx.fill();
     }
 
     function addEdge(event) {
-        const clickedNode = nodes.find(node => Math.hypot(node.x - event.offsetX, node.y - event.offsetY) < 20);
-        if (clickedNode) {
-            if (!currentNodeName) {
-                currentNodeName = clickedNode.name;
-            } else {
-                if (currentNodeName === clickedNode.name) {
-                    currentNodeName = '';
-                    return;
-                }
-                edges = edges.filter(edge =>
-                    !(edge.from === currentNodeName && edge.to === clickedNode.name) &&
-                    !(edge.from === clickedNode.name && edge.to === currentNodeName)
-                );
-                const newEdge = {from: currentNodeName, to: clickedNode.name, type: currentEdgeType};
-                edges.push(newEdge);
-                currentNodeName = '';
-                drawGraph();
-                updateMatrix();
-            }
-        }
+        const clicked = nodes.find(n =>
+            Math.hypot(n.x - event.offsetX, n.y - event.offsetY) < 20);
+        if (!clicked) return;
+        if (!currentNodeName) { currentNodeName = clicked.name; return; }
+        if (currentNodeName === clicked.name) { currentNodeName = ''; return; }
+        edges = edges.filter(e =>
+            !(e.from === currentNodeName && e.to === clicked.name) &&
+            !(e.from === clicked.name   && e.to === currentNodeName));
+        edges.push({from: currentNodeName, to: clicked.name, type: currentEdgeType});
+        currentNodeName = '';
+        drawGraph(); updateMatrix();
     }
 
     function eraseNode(event) {
-        const clickedNode = nodes.find(node => Math.hypot(node.x - event.offsetX, node.y - event.offsetY) < 20);
-        if (clickedNode) {
-            nodes = nodes.filter(node => node !== clickedNode);
-            edges = edges.filter(edge => edge.from !== clickedNode.name && edge.to !== clickedNode.name);
-            drawGraph();
-            updateMatrix();
+        const clicked = nodes.find(n =>
+            Math.hypot(n.x - event.offsetX, n.y - event.offsetY) < 20);
+        if (clicked) {
+            nodes = nodes.filter(n => n !== clicked);
+            edges = edges.filter(e =>
+                e.from !== clicked.name && e.to !== clicked.name);
+            drawGraph(); updateMatrix();
         } else {
             eraseEdge(event);
         }
     }
 
     function eraseEdge(event) {
-        const clickedEdge = edges.find(edge => {
-            const fromNode = nodes.find(n => n.name === edge.from);
-            const toNode = nodes.find(n => n.name === edge.to);
-            return fromNode && toNode && isPointOnLine(event.offsetX, event.offsetY, fromNode.x, fromNode.y, toNode.x, toNode.y);
+        const hit = edges.find(e => {
+            const a = nodes.find(n => n.name === e.from);
+            const b = nodes.find(n => n.name === e.to);
+            return a && b && isPointOnLine(
+                event.offsetX, event.offsetY, a.x, a.y, b.x, b.y);
         });
-        if (clickedEdge) {
-            edges = edges.filter(edge => edge !== clickedEdge);
-            drawGraph();
-            updateMatrix();
-        }
+        if (hit) { edges = edges.filter(e => e !== hit); drawGraph(); updateMatrix(); }
     }
 
     function isPointOnLine(px, py, x1, y1, x2, y2) {
-        const distance = Math.abs((y2 - y1) * px - (x2 - x1) * py + x2 * y1 - y2 * x1) /
-            Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
-        return distance < 10;
+        return Math.abs((y2-y1)*px-(x2-x1)*py+x2*y1-y2*x1) /
+               Math.sqrt((y2-y1)**2+(x2-x1)**2) < 10;
     }
 
     function updateMatrix() {
-        const matrix = document.getElementById('matrix');
-        matrix.innerHTML = '';
-
-        const size = nodes.length;
-        const matrixData = Array.from({length: size}, () => Array(size).fill(0));
-
-        edges.forEach(edge => {
-            const fromIndex = nodes.findIndex(node => node.name === edge.from);
-            const toIndex = nodes.findIndex(node => node.name === edge.to);
-            if (fromIndex >= 0 && toIndex >= 0) {
-                matrixData[fromIndex][toIndex] = 1;
-                if (edge.type === 'two-way') {
-                    matrixData[toIndex][fromIndex] = 1;
-                }
+        const tbl = document.getElementById('matrix');
+        tbl.innerHTML = '';
+        const size   = nodes.length;
+        const mData  = Array.from({length:size}, () => Array(size).fill(0));
+        edges.forEach(e => {
+            const fi = nodes.findIndex(n => n.name === e.from);
+            const ti = nodes.findIndex(n => n.name === e.to);
+            if (fi>=0 && ti>=0) {
+                mData[fi][ti]=1;
+                if (e.type==='two-way') mData[ti][fi]=1;
             }
         });
-
-        const headerRow = document.createElement('tr');
-        const emptyHeaderCell = document.createElement('th');
-        emptyHeaderCell.textContent = '';
-        headerRow.appendChild(emptyHeaderCell);
-
-        nodes.forEach(node => {
-            const headerCell = document.createElement('th');
-            headerCell.textContent = node.name;
-            headerRow.appendChild(headerCell);
+        const hdr = document.createElement('tr');
+        hdr.appendChild(document.createElement('th'));
+        nodes.forEach(n => {
+            const th = document.createElement('th');
+            th.textContent = n.name; hdr.appendChild(th);
         });
-
-        matrix.appendChild(headerRow);
-
-        for (let i = 0; i < size; i++) {
+        tbl.appendChild(hdr);
+        for (let i=0; i<size; i++) {
             const row = document.createElement('tr');
-            const rowHeaderCell = document.createElement('th');
-            rowHeaderCell.textContent = nodes[i].name;
-            row.appendChild(rowHeaderCell);
-
-            for (let j = 0; j < size; j++) {
-                const cell = document.createElement('td');
-                cell.textContent = (i === j) ? '0' : matrixData[i][j];
-                row.appendChild(cell);
+            const rh  = document.createElement('th');
+            rh.textContent = nodes[i].name; row.appendChild(rh);
+            for (let j=0; j<size; j++) {
+                const td = document.createElement('td');
+                td.textContent = (i===j) ? '0' : mData[i][j];
+                row.appendChild(td);
             }
-
-            matrix.appendChild(row);
+            tbl.appendChild(row);
         }
     }
 
-    canvas.addEventListener('mousedown', function (event) {
-        const clickedNode = nodes.find(node => Math.hypot(node.x - event.offsetX, node.y - event.offsetY) < 20);
-        if (clickedNode) {
-            selectedNode = clickedNode;
-            isDragging = true;
-        }
+    canvas.addEventListener('mousedown', e => {
+        const hit = nodes.find(n =>
+            Math.hypot(n.x-e.offsetX, n.y-e.offsetY) < 20);
+        if (hit) { selectedNode = hit; isDragging = true; }
     });
-
-    canvas.addEventListener('mousemove', function (event) {
-        if (isDragging && selectedNode) {
-            selectedNode.x = event.offsetX;
-            selectedNode.y = event.offsetY;
-            drawGraph();
-            updateMatrix();
-        }
+    canvas.addEventListener('mousemove', e => {
+        if (!isDragging || !selectedNode) return;
+        selectedNode.x = e.offsetX; selectedNode.y = e.offsetY;
+        drawGraph(); updateMatrix();
     });
-
-    canvas.addEventListener('mouseup', function () {
-        isDragging = false;
-        selectedNode = null;
+    canvas.addEventListener('mouseup', () => {
+        isDragging = false; selectedNode = null;
     });
 
     document.getElementById('submit-matrix').addEventListener('click', function () {
-    const nodesHorizontal = nodes.map(node => node.name);
+        const nodesH = nodes.map(n => n.name);
+        if (!nodesH.length) { alert('Матриця порожня, додайте вузли та ребра.'); return; }
 
-    if (nodesHorizontal.length === 0) {
-        alert("Матриця порожня, додайте вузли та ребра.");
-        return;
-    }
-
-    const size = nodes.length;
-    const matrix = Array.from({length: size}, () => Array(size).fill(0));
-
-    edges.forEach(edge => {
-        const fromIndex = nodes.findIndex(node => node.name === edge.from);
-        const toIndex = nodes.findIndex(node => node.name === edge.to);
-        if (fromIndex >= 0 && toIndex >= 0) {
-            matrix[fromIndex][toIndex] = 1;
-            if (edge.type === 'two-way') {
-                matrix[toIndex][fromIndex] = 1;
+        const size   = nodes.length;
+        const matrix = Array.from({length:size}, () => Array(size).fill(0));
+        edges.forEach(e => {
+            const fi = nodes.findIndex(n => n.name === e.from);
+            const ti = nodes.findIndex(n => n.name === e.to);
+            if (fi>=0 && ti>=0) {
+                matrix[fi][ti]=1;
+                if (e.type==='two-way') matrix[ti][fi]=1;
             }
-        }
-    });
+        });
+        for (let i=0; i<size; i++) matrix[i][i]=0;
 
-    for (let i = 0; i < size; i++) {
-        matrix[i][i] = 0;
-    }
+        const resultEl = document.getElementById('result');
+        resultEl.innerHTML = ''; resultEl.classList.remove('hidden');
 
-    console.log("Nodes:", nodesHorizontal);
-    console.log("Matrix:", matrix);
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value,
+            },
+            body: JSON.stringify({nodes: nodesH, matrix, mode: currentMode}),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.dead) {
+                resultEl.innerHTML = "<p class='grey'>Кластер мертвий</p>";
+                return;
+            }
+            if (data.split_brain) {
+                resultEl.innerHTML = "<p class='red'>Ситуація Split Brain</p>";
+                return;
+            }
 
-    fetch(window.location.href, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector('[name="csrfmiddlewaretoken"]').value
-        },
-        body: JSON.stringify({nodes: nodesHorizontal, matrix: matrix})
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            console.log("Отримані дані від сервера:", data);
+            if (data.mode === 'base') {
+                const rf = data.probability_rf;
+                const gb = data.probability_gb;
+                const cb = data.probability_cb;
+                const colorClass = p => p < 30 ? 'green' : p < 60 ? 'orange' : 'red';
+                resultEl.innerHTML = `
+                    <p><strong>Random Forest:</strong>
+                       <span class="${colorClass(rf)}">${rf}%</span></p>
+                    <p><strong>Gradient Boosting:</strong>
+                       <span class="${colorClass(gb)}">${gb}%</span></p>
+                    <p><strong>CatBoost:</strong>
+                       <span class="${colorClass(cb)}">${cb}%</span></p>`;
+                return;
+            }
 
-            const resultElement = document.getElementById("result");
-            resultElement.innerHTML = "";
-            resultElement.classList.remove("hidden");
-            if (data.probability_neural === -1) {
-                resultElement.innerHTML = "<p class='grey'>Кластер мертвий</p>";
-            } else if (data.probability_neural === 100) {
-                resultElement.innerHTML = "<p class='red'>Ситуація Split brain</p>";
-            } else {
-                resultElement.innerHTML = `
-                    <p><strong>Ймовірність Random Forest:</strong> ${data.probability_rf}%</p>
-                    <p><strong>Ймовірність Gradient Boosting:</strong> ${data.probability_gb}%</p>
-                    <p><strong>Ймовірність CatBoost:</strong> ${data.probability_cb}%</p>
-                `;
+            if (data.mode === 'ensemble') {
+                const labels = {
+                    e1: 'E1 &nbsp;(RF + GB + CB)',
+                    e2: 'E2 &nbsp;(CB 10% · 50% · 90%)',
+                    e3: 'E3 &nbsp;(CB shallow · deep · highReg)',
+                };
+                const colorClass = p => p < 30 ? 'green' : p < 60 ? 'orange' : 'red';
+                resultEl.innerHTML = Object.entries(labels).map(([k, label]) => {
+                    const p = data[k];
+                    return `<p><strong>${label}:</strong>
+                        <span class="${colorClass(p)}">${p}%</span></p>`;
+                }).join('');
             }
         })
-        .catch((error) => console.error("Помилка при відправці:", error));
-});
+        .catch(err => {
+            resultEl.innerHTML = `<p class='error'>Помилка: ${err.message}</p>`;
+        });
+    });
 
     function getNodeColor(name) {
-        const letter = name.charAt(0).toUpperCase();
-
-        const colorMap = {
-            'A': '#4CAF50',
-            'B': '#FF5733',
-            'C': '#3375FF',
-            'D': '#FF9800',
-            'E': '#9C27B0',
-            'F': '#00BCD4',
-            'G': '#8BC34A',
-            'H': '#FFEB3B',
-            'I': '#607D8B',
-            'J': '#795548',
-            'K': '#D32F2F',
-            'L': '#3F51B5',
-            'M': '#CDDC39',
-            'N': '#009688',
-            'O': '#2196F3',
-            'P': '#FF5722',
-            'Q': '#9E9E9E',
-            'R': '#E91E63',
-            'S': '#8E24AA',
-            'T': '#F44336',
-            'U': '#00BCD4',
-            'V': '#607D8B',
-            'W': '#795548',
-            'X': '#FFC107',
-            'Y': '#00C853',
-            'Z': '#FF4081',
+        const map = {
+            A:'#4CAF50',B:'#FF5733',C:'#3375FF',D:'#FF9800',E:'#9C27B0',
+            F:'#00BCD4',G:'#8BC34A',H:'#FFEB3B',I:'#607D8B',J:'#795548',
+            K:'#D32F2F',L:'#3F51B5',M:'#CDDC39',N:'#009688',O:'#2196F3',
+            P:'#FF5722',Q:'#9E9E9E',R:'#E91E63',S:'#8E24AA',T:'#F44336',
+            U:'#00BCD4',V:'#607D8B',W:'#795548',X:'#FFC107',Y:'#00C853',Z:'#FF4081',
         };
-
-        return colorMap[letter] || '#FFD700';
+        return map[name.charAt(0).toUpperCase()] || '#FFD700';
     }
 
     function validateNodeName(name) {

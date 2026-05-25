@@ -13,7 +13,7 @@ from app.model.DataPreparation import (
 )
 from app.model.metrics import compute_metrics, save_metrics, print_metrics
 
-MODEL_PATH = "split_brain_model_rf.pkl"
+MODEL_PATH = "models/split_brain_model_rf.pkl"
 METRICS_PATH = "metrics_rf.json"
 BUFFER_PATH = "rf_teach_buffer.pkl"
 
