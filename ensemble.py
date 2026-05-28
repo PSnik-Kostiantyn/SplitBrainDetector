@@ -49,11 +49,6 @@ _cache: dict = {}
 
 
 def _gen_balanced(n_normal, n_sb, tag=""):
-    """
-    n_normal  — кількість природньо згенерованих кластерів
-                (~9% з них будуть SB природньо)
-    n_sb      — додаткові примусово згенеровані SB приклади
-    """
     X, y = [], []
     for _ in tqdm(range(n_normal), desc=f"{tag} normal", leave=False):
         nodes, matrix = generate_cluster()
@@ -72,7 +67,6 @@ def _gen_balanced(n_normal, n_sb, tag=""):
 
 
 def _gen_natural(n, tag=""):
-    """Природній розподіл ~9% SB. Для val та cal."""
     X, y = [], []
     for _ in tqdm(range(n), desc=f"{tag} natural", leave=False):
         nodes, matrix = generate_cluster()
@@ -84,26 +78,12 @@ def _gen_natural(n, tag=""):
 
 
 def _sb_split(n_total, sb_ratio):
-    """
-    Розраховує n_normal та n_sb так щоб фактичний % SB
-    у train був близький до sb_ratio.
-
-    Оскільки _gen_balanced(n_normal, n_sb) генерує n_normal природніх
-    (з яких ~9% є SB природньо) + n_sb примусових SB,
-    фактичний % SB ≈ (0.09*n_normal + n_sb) / (n_normal + n_sb).
-
-    Вирішуємо: n_sb = sb_ratio * n_total - 0.09 * n_normal
-    де n_normal = n_total - n_sb:
-      n_sb = (sb_ratio - 0.09) / (1 - 0.09) * n_total
-    """
     if sb_ratio <= 0.09:
         return n_total, 0
     n_sb = int((sb_ratio - 0.09) / (1 - 0.09) * n_total)
     n_normal = n_total - n_sb
     return n_normal, n_sb
 
-
-# ── E1: RF + GB + CB (~30% SB) ───────────────────────────────────────
 
 def train_e1(cfg) -> EnsembleModel:
     n, vs = cfg["n_base"], cfg["val_size"]
@@ -157,16 +137,11 @@ def train_e1(cfg) -> EnsembleModel:
     return EnsembleModel([rf, gb, cb], name="E1_Mixed")
 
 
-# ── E2: CB × 3 з різним SB ratio ─────────────────────────────────────
-# E2 використовує spw від фактичного розподілу в train —
-# різниця у spw і є суттю E2 (різна чутливість).
-
 def _cb_ratio(n_total, sb_ratio, val_size, tag) -> CatBoostClassifier:
     n_ok, n_sb = _sb_split(n_total, sb_ratio)
     X, y = _gen_balanced(n_ok, n_sb, tag)
     pos = int((y == 1).sum());
     neg = int((y == 0).sum())
-    # E2: spw від фактичного розподілу в train (а не NATURAL_SPW)
     spw = neg / max(pos, 1)
     actual_pct = pos / len(y) * 100
     print(f"  [{tag}] neg={neg} pos={pos} "
@@ -196,8 +171,6 @@ def train_e2(cfg) -> EnsembleModel:
     cb90 = _cb_ratio(n, 0.90, vs, "CB-90%SB")
     return EnsembleModel([cb10, cb50, cb90], name="E2_CB_Bias")
 
-
-# ── E3: CB × 3 з різними гіперпараметрами (~30% SB) ──────────────────
 
 def train_e3(cfg) -> EnsembleModel:
     n, vs = cfg["n_base"], cfg["val_size"]
@@ -247,8 +220,6 @@ def train_e3(cfg) -> EnsembleModel:
     return EnsembleModel([ca, cb, cc], name="E3_CB_Hyper")
 
 
-# ── завантаження з кешем ──────────────────────────────────────────────
-
 def get_ensemble(key: str, calibrated: bool = True) -> EnsembleModel:
     cache_key = f"{key}_{'cal' if calibrated else 'raw'}"
     if cache_key in _cache:
@@ -270,8 +241,6 @@ def get_ensemble(key: str, calibrated: bool = True) -> EnsembleModel:
     _cache[cache_key] = ens
     return ens
 
-
-# ── main ──────────────────────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser()
